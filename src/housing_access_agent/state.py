@@ -1,2 +1,1 @@
-"""State shared by the LangGraph research workflow."""
-
+"""LangGraph state shared across the research workflow."""

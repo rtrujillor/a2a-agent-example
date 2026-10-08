@@ -1,2 +1,1 @@
-"""LangGraph workflow construction and node definitions."""
-
+"""Composition root for the LangGraph research workflow."""

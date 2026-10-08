@@ -1,4 +1,5 @@
-# Spain Housing Access A2A Agent
+# Spain Housing Access Problem -  A2A Agent
+
 
 An Agent-to-Agent (A2A) application for researching, summarizing, and presenting
 current information about housing-access challenges in Spain.
@@ -57,6 +58,27 @@ User -> A2A Client -> A2A Agent -> Google Search
                           +-> Source evaluation and synthesis
                           |
                           +-> Cited response -> A2A Client -> User
+```
+
+### Project Structure
+
+```text
+src/
+├── a2a_client/                 # Client transport and request handling
+└── housing_access_agent/
+    ├── a2a/                    # Agent card and A2A execution adapter
+    ├── domain/                 # Shared research and evidence types
+    ├── tools/                  # Search and official-source adapters
+    ├── workflow/               # Classify, plan, research, validate, synthesize
+    ├── config.py               # Environment-based configuration
+    ├── graph.py                # LangGraph composition root
+    ├── observability.py        # Tracing, logging, and quality signals
+    ├── prompts.py              # Agent prompts
+    ├── server.py               # A2A server entry point
+    └── state.py                # Shared workflow state
+tests/
+├── integration/               # A2A and external-boundary tests
+└── unit/                       # Workflow and tool tests
 ```
 
 ## Prerequisites

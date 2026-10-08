@@ -1,2 +1,1 @@
-"""A2A server entry point and agent-card configuration."""
-
+"""Application entry point for serving the agent over A2A."""

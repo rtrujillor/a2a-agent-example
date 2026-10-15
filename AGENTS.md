@@ -36,7 +36,7 @@ changes.
 | Concern | Technology |
 | --- | --- |
 | Web client | Vue.js SPA with an A2A JavaScript client, served by Vite |
-| A2A server | Python `a2a-sdk` (Starlette app on Uvicorn), `InMemoryTaskStore` |
+| A2A server | Python `a2a-sdk` 1.x: Starlette app built from `create_jsonrpc_routes` and `create_agent_card_routes`, on Uvicorn; `InMemoryTaskStore` |
 | Workflow | LangGraph `StateGraph`, compiled once at startup |
 | Short-term memory | LangGraph `InMemorySaver`; thread ID = A2A `contextId` |
 | Language model | LM Studio through its OpenAI-compatible API |
@@ -87,6 +87,8 @@ Rules:
 ### Web client
 
 - Vue.js 3 with the Composition API, TypeScript, and Vite.
+- Use pnpm only (version pinned in `packageManager`); never commit an npm or
+  yarn lockfile.
 - Talk only to the agent's A2A endpoint; discover it through the agent card.
 - Show streamed progress, errors, the answer, citations, and limitations.
 - Render model output as sanitized Markdown; never use `v-html` on unsanitized
@@ -170,7 +172,8 @@ attendance estimates.
 - Cover limits and failures: timeouts, empty results, conflicting sources,
   out-of-scope and ambiguous requests, loop limits, and injected instructions in
   retrieved content.
-- Run `pytest` before finishing. Report any lint, type-check, or build step that
+- Before finishing, run `pytest` for the agent, and `pnpm test:unit --run`,
+  `pnpm lint`, and `pnpm build` in `web/` for the client. Report any check that
   is not yet configured, and never claim it passed.
 
 ## Repository Guidelines

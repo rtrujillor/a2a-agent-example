@@ -89,15 +89,15 @@ src/
 tests/
 ├── integration/a2a/            # A2A protocol tests
 └── unit/                       # workflow/ and tools/ tests
+web/                            # Vue.js + TypeScript client (see web/README.md)
+└── src/                        # components, composables, services, types
 docs/architecture/              # draw.io diagrams
 ```
 
-The Vue.js web client is not in the repository yet.
-
 ## Prerequisites
 
-- Python 3.11+
-- Node.js (for the Vue.js client)
+- Python 3.11+ (`.python-version` selects 3.12; `uv` recommended)
+- Node.js 22.18+ or 24.12+ and pnpm 11 (for the Vue.js client)
 - LM Studio with a model that supports tool calling or structured output
 - Docker (for self-hosted Langfuse)
 - Google Programmable Search API key and search engine ID. Check that the
@@ -109,23 +109,31 @@ Copy `.env.example` to `.env` and fill in the values. Never commit `.env`.
 
 | Variable | Purpose |
 | --- | --- |
-| `MODEL_NAME`, `MODEL_API_KEY` | Language model and its key |
+| `MODEL_BASE_URL`, `MODEL_NAME`, `MODEL_API_KEY` | OpenAI-compatible model endpoint (LM Studio) |
 | `GOOGLE_SEARCH_API_KEY`, `GOOGLE_SEARCH_ENGINE_ID` | Google Programmable Search |
 | `A2A_HOST`, `A2A_PORT`, `A2A_AGENT_URL` | Agent bind address and public A2A URL |
+| `CORS_ALLOWED_ORIGINS` | Web client origins allowed to call the agent |
+| `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` | Tracing |
+| `MAX_*`, `*_TIMEOUT_SECONDS`, `HTTP_MAX_RETRIES` | Research limits, timeouts, retries |
 
-The model base URL (LM Studio), Langfuse keys, and research limits still need
-to be added to `.env.example`.
+The web client has its own `web/.env.example` with only `VITE_AGENT_URL`.
 
 ## Development setup
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+# Agent
+uv venv && source .venv/bin/activate
+uv pip install -e ".[dev]"
 pytest
+
+# Web client
+cd web && pnpm install
+pnpm dev             # http://localhost:5173
+pnpm test:unit
 ```
 
-Run commands for the agent server and web client will be documented once they
-exist.
+The command to start the agent server will be documented once `server.py` is
+implemented.
 
 ## Example requests
 

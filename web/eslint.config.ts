@@ -22,6 +22,13 @@ export default defineConfigWithVueTs(
   vueTsConfigs.recommended,
 
   {
+    // shadcn-vue primitives use single-word names (Button, Textarea).
+    name: 'app/ui-primitives',
+    files: ['src/components/ui/**/*.vue'],
+    rules: { 'vue/multi-word-component-names': 'off' },
+  },
+
+  {
     ...pluginVitest.configs.recommended,
     files: ['src/**/__tests__/*'],
   },

@@ -7,12 +7,12 @@ and shows progress, answers, citations, and limitations. See the root
 ```text
 src/
 ├── components/
+│   ├── ResearchRequestForm.vue  # question form on the home page
 │   └── ui/           # shadcn-vue primitives (vendored, owned by us)
-├── composables/      # useResearchTask: task state and streaming
 ├── lib/utils.ts      # cn(): merges Tailwind classes
 ├── router/index.ts   # routes table, createAppRouter(history), app router
 ├── services/         # a2aClient: agent card, send, stream
-├── stores/           # Pinia stores (empty until the first real store)
+├── stores/           # Pinia stores: research.ts (useResearchStore)
 ├── test-utils/       # mountWithPlugins(): fresh Pinia + memory router
 ├── types/            # Research request and answer types
 ├── views/            # Routed pages: HomeView, NotFoundView
@@ -72,6 +72,31 @@ of pages other than `/` return a server 404.
 - State lives in memory only. No persistence plugin and no `localStorage`
   until persistence is designed.
 - Store unit tests call `setActivePinia(createPinia())` in `beforeEach`.
+
+## Research request
+
+The home page's `ResearchRequestForm` sends one question to the agent. Data
+flows one way: component → `useResearchStore` (`src/stores/research.ts`) →
+`a2aService` (`src/services/a2aClient.ts`) → agent.
+
+- **Agent URL:** `VITE_AGENT_URL` in `.env` (see `.env.example`). It is a
+  public address, never a secret. The service reads the agent card at
+  `<VITE_AGENT_URL>/.well-known/agent-card.json` and uses the endpoint the card
+  declares. The agent must allow this client's origin in CORS.
+- **SDK boundary:** `services/a2aClient.ts` is the only module that imports
+  `@a2a-js/sdk`. Everything else uses the types in `src/types/research.ts`.
+- **Store states:**
+
+  | Status        | Meaning                                                       |
+  | ------------- | ------------------------------------------------------------- |
+  | `idle`        | Nothing sent yet                                              |
+  | `invalid`     | Empty question or over `MAX_QUESTION_LENGTH` (2000); not sent |
+  | `submitting`  | Waiting for the agent's first stream event                    |
+  | `submitted`   | Accepted; `taskId` and `contextId` are kept, stream open      |
+  | `unreachable` | Agent card, network, CORS, or empty-stream failure            |
+
+  Only one request runs at a time. A new submission closes the previous stream
+  and starts a new context.
 
 ## Design system
 

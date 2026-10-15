@@ -1,4 +1,6 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import ResearchRequestForm from '@/components/ResearchRequestForm.vue'
+</script>
 
 <template>
   <section class="mx-auto max-w-prose space-y-6">
@@ -33,5 +35,7 @@
         <li>Previsiones sin respaldo en datos.</li>
       </ul>
     </div>
+
+    <ResearchRequestForm />
   </section>
 </template>

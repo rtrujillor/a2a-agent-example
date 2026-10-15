@@ -1,0 +1,130 @@
+<mxfile host="65bd71144e">
+    <diagram id="housing-use-cases" name="Use Cases">
+        <mxGraphModel dx="3079" dy="1166" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" parent="1" style="text;html=1;align=center;fontSize=24;fontStyle=1;" value="Spain Housing Access Research System — Use Cases" vertex="1">
+                    <mxGeometry height="40" width="760" x="420" y="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="user" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=14;" value="Housing information user" vertex="1">
+                    <mxGeometry height="75" width="40" x="-60" y="335" as="geometry"/>
+                </mxCell>
+                <mxCell id="operator" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=14;" value="System operator" vertex="1">
+                    <mxGeometry height="85" width="40" x="480" y="750" as="geometry"/>
+                </mxCell>
+                <mxCell id="client" parent="1" style="swimlane;html=1;startSize=35;rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=16;strokeWidth=5;" value="Client" vertex="1">
+                    <mxGeometry height="530" width="300" x="200" y="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="submit" parent="client" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" value="Submit housing research request" vertex="1">
+                    <mxGeometry height="75" width="210" x="45" y="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="progress" parent="client" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" value="Receive progress or errors" vertex="1">
+                    <mxGeometry height="75" width="210" x="40" y="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="review" parent="client" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=13;" value="Review answer, citations, and limitations" vertex="1">
+                    <mxGeometry height="75" width="210" x="40" y="410" as="geometry"/>
+                </mxCell>
+                <mxCell id="agent" parent="1" style="swimlane;html=1;startSize=35;rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=16;strokeWidth=5;" value="Housing Research Agent ( Workflow)" vertex="1">
+                    <mxGeometry height="830" width="860" x="620" y="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="classify" parent="agent" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" value="Interpret and classify request" vertex="1">
+                    <mxGeometry height="70" width="190" x="40" y="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="search" parent="agent" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=13;" value="Search current web information" vertex="1">
+                    <mxGeometry height="70" width="190" x="570" y="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="official" parent="agent" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=13;" value="Retrieve official evidence" vertex="1">
+                    <mxGeometry height="70" width="180" x="550" y="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="validate" parent="agent" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" value="Validate and cross-check evidence" vertex="1">
+                    <mxGeometry height="75" width="210" x="290" y="315" as="geometry"/>
+                </mxCell>
+                <mxCell id="synthesize" parent="agent" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" value="Synthesize answer with citations and limitations" vertex="1">
+                    <mxGeometry height="85" width="210" x="290" y="475" as="geometry"/>
+                </mxCell>
+                <mxCell id="configure" parent="agent" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=13;" value="Configure providers and limits" vertex="1">
+                    <mxGeometry height="70" width="190" x="120" y="610" as="geometry"/>
+                </mxCell>
+                <mxCell id="monitor" parent="agent" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=13;" value="Monitor execution and quality" vertex="1">
+                    <mxGeometry height="70" width="180" x="125" y="730" as="geometry"/>
+                </mxCell>
+                <mxCell id="plan" parent="agent" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" value="Plan bounded research" vertex="1">
+                    <mxGeometry height="70" width="180" x="320" y="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5" edge="1" parent="agent" source="plan" style="html=1;dashed=1;endArrow=open;" target="search" value="&lt;&lt;include&gt;&gt;">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e6" edge="1" parent="agent" source="plan" style="html=1;dashed=1;endArrow=open;" target="official" value="&lt;&lt;include&gt;&gt;">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="uWKUe7MbI0bGEGscmyaH-1" edge="1" parent="agent" source="classify" style="html=1;endArrow=block;endFill=1;" target="plan" value="">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="210" y="165" as="sourcePoint"/>
+                        <mxPoint x="1165" y="375" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="uWKUe7MbI0bGEGscmyaH-2" edge="1" parent="agent" source="plan" style="html=1;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="validate" value="">
+                    <mxGeometry relative="1" x="-0.7914" as="geometry">
+                        <mxPoint x="410" y="210" as="sourcePoint"/>
+                        <mxPoint x="380" y="230" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="providers" parent="1" style="swimlane;html=1;startSize=35;rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=16;strokeWidth=5;" value="External Providers" vertex="1">
+                    <mxGeometry height="820" width="370" x="1570" y="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="sources" parent="providers" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;" value="Official and public sources" vertex="1">
+                    <mxGeometry height="65" width="210" x="80" y="105" as="geometry"/>
+                </mxCell>
+                <mxCell id="llm" parent="providers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" value="Language model service&lt;div&gt;( Lite LLM )&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="65" width="210" x="70" y="430" as="geometry"/>
+                </mxCell>
+                <mxCell id="telemetry" parent="providers" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;" value="Logging and tracing service&lt;div&gt;( Langfuse? )&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="65" width="210" x="70" y="640" as="geometry"/>
+                </mxCell>
+                <mxCell id="google" parent="providers" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;" value="Google Search" vertex="1">
+                    <mxGeometry height="65" width="210" x="80" y="252" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" edge="1" parent="1" source="user" style="html=1;endArrow=classic;exitX=1;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endFill=1;" target="submit" value="requests research">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2" edge="1" parent="1" source="user" style="html=1;endArrow=classic;endFill=1;" target="review" value="reviews result">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3" edge="1" parent="1" source="submit" style="html=1;endArrow=block;endFill=1;" target="classify" value="Request">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e9" edge="1" parent="1" source="validate" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" target="synthesize" value="verified evidence">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e10" edge="1" parent="1" source="synthesize" style="html=1;endArrow=block;endFill=1;" target="review" value="Response">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e11" edge="1" parent="1" source="validate" style="html=1;endArrow=block;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="progress" value="status/errors">
+                    <mxGeometry relative="1" x="-0.0893" as="geometry"/>
+                </mxCell>
+                <mxCell id="e16" edge="1" parent="1" source="operator" style="html=1;endArrow=none;" target="configure" value="manages">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e17" edge="1" parent="1" source="operator" style="html=1;endArrow=none;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" target="monitor" value="observes">
+                    <mxGeometry relative="1" x="0.001" as="geometry"/>
+                </mxCell>
+                <mxCell id="e18" edge="1" parent="1" source="monitor" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" target="telemetry" value="telemetry">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="uWKUe7MbI0bGEGscmyaH-4" edge="1" parent="1" source="official" style="html=1;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="sources" value="">
+                    <mxGeometry relative="1" x="-0.8067" as="geometry">
+                        <mxPoint x="1535" y="300" as="sourcePoint"/>
+                        <mxPoint x="1520" y="385" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="uWKUe7MbI0bGEGscmyaH-5" edge="1" parent="1" source="search" style="html=1;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="google" value="">
+                    <mxGeometry relative="1" x="-0.7424" as="geometry">
+                        <mxPoint x="1410" y="269" as="sourcePoint"/>
+                        <mxPoint x="1710" y="240" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

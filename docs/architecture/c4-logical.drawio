@@ -1,0 +1,273 @@
+<mxfile host="65bd71144e">
+    <diagram id="c1" name="C1 - System Context">
+        <mxGraphModel dx="1185" dy="773" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1000" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="t" parent="1" style="text;html=1;align=left;verticalAlign=top;fontSize=20;fontStyle=1;" value="C1 · System Context — Spain Housing Access Research" vertex="1">
+                    <mxGeometry height="40" width="900" x="40" y="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="user" parent="1" style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;align=center;metaEdit=1;resizable=0;fillColor=#FFFFFF;strokeColor=#073B6F;fontColor=#ffffff;fontSize=15;" value="&lt;b&gt;Housing Information User&lt;/b&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;[Person]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Asks questions about housing access in Spain and reviews cited answers.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="180" width="200" x="80" y="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="operator" parent="1" style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;align=center;metaEdit=1;resizable=0;fillColor=#FFFFFF;strokeColor=#073B6F;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;System Operator&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Person]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Configures providers and limits; monitors execution and quality.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="180" width="200" x="90" y="580" as="geometry"/>
+                </mxCell>
+                <mxCell id="system" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;Housing Access Research System&lt;/b&gt;&lt;div style=&quot;font-size: 13px;&quot;&gt;[Software System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Interprets housing questions, researches and validates evidence, and returns neutral, cited answers with stated limitations.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="170" width="300" x="520" y="400" as="geometry"/>
+                </mxCell>
+                <mxCell id="ext_official" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Official &amp;amp; Public Data Sources&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Statistics offices, official gazettes, registries, central bank, regional and municipal authorities.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="1120" y="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="ext_search" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Web Search Service&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Finds current news, reports, studies and publications.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="1120" y="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="ext_llm" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Language Model Service&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Provides language understanding and text generation.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="1120" y="540" as="geometry"/>
+                </mxCell>
+                <mxCell id="ext_telemetry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Telemetry and Observability Service&lt;/b&gt;&lt;div style=&quot;font-size:10px&quot;&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Stores traces, logs and quality signals for operators.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="1120" y="760" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" edge="1" parent="1" source="user" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="system" value="Submits research requests; receives progress, answers, citations and limitations">
+                    <mxGeometry relative="1" x="0.1778" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="590" y="260"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e2" edge="1" parent="1" source="operator" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;exitX=0.979;exitY=0.494;exitDx=0;exitDy=0;exitPerimeter=0;" target="system" value="Configures providers and limits">
+                    <mxGeometry relative="1" x="0.3266" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="285.8" y="640"/>
+                            <mxPoint x="570" y="640"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e3" edge="1" parent="1" source="system" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="ext_official" value="Retrieves official evidence">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="670" y="280"/>
+                            <mxPoint x="1240" y="280"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e4" edge="1" parent="1" source="system" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="ext_search" value="Searches current information">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5" edge="1" parent="1" source="system" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="ext_llm" value="Requests interpretation and synthesis">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e6" edge="1" parent="1" source="system" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="ext_telemetry" value="Sends traces and quality signals">
+                    <mxGeometry relative="1" x="-0.1875" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="790" y="680"/>
+                            <mxPoint x="1240" y="680"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e7" edge="1" parent="1" source="operator" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;exitX=0.979;exitY=0.836;exitDx=0;exitDy=0;exitPerimeter=0;" target="ext_telemetry" value="Reviews execution and quality">
+                    <mxGeometry relative="1" x="-0.0595" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="c2" name="C2 - Containers">
+        <mxGraphModel dx="760" dy="672" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1000" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="t" parent="1" style="text;html=1;align=left;verticalAlign=top;fontSize=20;fontStyle=1;" value="C2 · Containers — Housing Access Research System" vertex="1">
+                    <mxGeometry height="40" width="900" x="40" y="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="b_system" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=2;fillColor=#dae8fc;dashed=1;dashPattern=8 4;strokeColor=#6c8ebf;fontSize=12;align=left;verticalAlign=bottom;spacingLeft=10;spacingBottom=6;" value="&lt;b&gt;Housing Access Research System&lt;/b&gt; [Software System]" vertex="1">
+                    <mxGeometry height="720" width="600" x="340" y="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="user" parent="1" style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;align=center;metaEdit=1;resizable=0;fontSize=11;" value="&lt;b&gt;Housing Information User&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Person]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Asks housing questions and reviews answers.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="180" width="200" x="60" y="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="operator" parent="1" style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;align=center;metaEdit=1;resizable=0;fontSize=11;" value="&lt;b&gt;System Operator&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Person]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Configures and monitors the system.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="180" width="200" x="60" y="620" as="geometry"/>
+                </mxCell>
+                <mxCell id="client" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Research Client&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Container]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Captures research requests, shows progress and errors, and presents answers with citations and limitations.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="150" width="260" x="510" y="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="agent" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Research Agent&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Container]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Publishes its capabilities, accepts research tasks and runs the bounded research workflow: classify, plan, retrieve, validate, synthesize.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="170" width="260" x="510" y="540" as="geometry"/>
+                </mxCell>
+                <mxCell id="ext_official" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Official &amp;amp; Public Data Sources&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Statistics offices, official gazettes, registries, central bank, regional and municipal authorities.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="1120" y="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="ext_search" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Web Search Service&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Finds current news, reports, studies and publications.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="1120" y="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="ext_llm" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Language Model Service&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Provides language understanding and text generation.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="1120" y="540" as="geometry"/>
+                </mxCell>
+                <mxCell id="ext_telemetry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Telemetry Service&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Stores traces, logs and quality signals for operators.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="1120" y="760" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" edge="1" parent="1" source="user" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="client" value="Submits requests; reviews results">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2" edge="1" parent="1" source="client" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="agent" value="Sends research tasks; receives status updates and results (agent-to-agent messages)">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3" edge="1" parent="1" source="operator" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="agent" value="Configures providers and limits">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e4" edge="1" parent="1" source="agent" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ext_official" value="Retrieves official evidence">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5" edge="1" parent="1" source="agent" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ext_search" value="Searches current information">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e6" edge="1" parent="1" source="agent" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="ext_llm" value="Requests interpretation and synthesis">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e7" edge="1" parent="1" source="agent" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="ext_telemetry" value="Sends traces and quality signals">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1240" y="690"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e8" edge="1" parent="1" source="operator" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="ext_telemetry" value="Reviews execution and quality">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="c3" name="C3 - Research Agent Components">
+        <mxGraphModel dx="2813" dy="719" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1250" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="t" parent="1" style="text;html=1;align=left;verticalAlign=top;fontSize=20;fontStyle=1;" value="C3 · Components — Research Agent" vertex="1">
+                    <mxGeometry height="40" width="900" x="40" y="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="b_agent" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=2;fillColor=none;dashed=1;dashPattern=8 4;strokeColor=#444444;fontColor=#444444;fontSize=12;align=left;verticalAlign=bottom;spacingLeft=10;spacingBottom=6;" value="&lt;b&gt;Research Agent&lt;/b&gt; [Container]" vertex="1">
+                    <mxGeometry height="1120" width="1310" x="330" y="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="g_workflow" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=3;fillColor=#F5F9FD;dashed=1;dashPattern=4 4;strokeColor=#78A8D8;fontColor=#2F5F8F;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;" value="&lt;b&gt;Research Workflow&lt;/b&gt; (bounded, deterministic sequence)" vertex="1">
+                    <mxGeometry height="510" width="880" x="710" y="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="client" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Research Client&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Container]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Sends tasks and displays results.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="-100" y="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="operator" parent="1" style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;align=center;metaEdit=1;resizable=0;fontSize=11;" value="&lt;b&gt;System Operator&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Person]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Configures and monitors the agent.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="180" width="200" x="70" y="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="iface" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Agent Interface&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Component]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Publishes the agent&amp;#x27;s capabilities, accepts tasks, reports status and errors, returns results.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="380" y="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="orch" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Workflow Orchestrator&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Component]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Runs the workflow steps in order, enforces step and retry limits, and handles failures.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="380" y="360" as="geometry"/>
+                </mxCell>
+                <mxCell id="state" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Research State&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Component]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Request, plan, evidence, validation results and citations, with source metadata.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="550" y="650" as="geometry"/>
+                </mxCell>
+                <mxCell id="config" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Configuration&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Component]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Provider settings, timeouts, retry and research-depth limits.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="380" y="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="classify" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Request Classifier&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Component]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Identifies topic, location, period, intent and research depth; flags out-of-scope requests.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="140" width="230" x="725" y="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="plan" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Research Planner&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Component]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Builds a bounded plan of searches and official-source queries.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="140" width="223" x="1027" y="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="retrieve" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Evidence Retriever&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Component]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Executes the plan and returns structured results with source metadata. Treats content as untrusted.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="140" width="230" x="1346" y="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="validate" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Evidence Validator&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Component]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Checks authority, relevance, dates and methodology; cross-checks material or disputed claims.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="140" width="230" x="1290" y="410" as="geometry"/>
+                </mxCell>
+                <mxCell id="synth" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Answer Synthesizer&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Component]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Writes a neutral answer in the user&amp;#x27;s language with citations, context and limitations.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="140" width="230" x="900" y="410" as="geometry"/>
+                </mxCell>
+                <mxCell id="llm_gw" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Language Model Gateway&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Component]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Provider-independent access to language-model capabilities.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="230" x="1020" y="700" as="geometry"/>
+                </mxCell>
+                <mxCell id="obs" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Observability&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Component]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Records traces, logs, errors and answer-quality signals.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="230" x="750" y="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="ext_official" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Official &amp;amp; Public Data Sources&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Statistics offices, official gazettes, registries, central bank, regional and municipal authorities.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="1690" y="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="ext_search" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Web Search Service&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Finds current news, reports, studies and publications.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="1690" y="378" as="geometry"/>
+                </mxCell>
+                <mxCell id="ext_llm" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Language Model Service&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Provides language understanding and text generation.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="1690" y="700" as="geometry"/>
+                </mxCell>
+                <mxCell id="ext_telemetry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fontSize=11;" value="&lt;b&gt;Telemetry Service&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[External System]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Stores traces, logs and quality signals for operators.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="240" x="1690" y="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_c1" edge="1" parent="1" source="client" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="iface" value="Sends research tasks;&amp;nbsp;&lt;div&gt;receives status and results&lt;/div&gt;">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_c2" edge="1" parent="1" source="iface" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="orch" value="Starts research; relays progress">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_c3" edge="1" parent="1" source="orch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="g_workflow" value="Runs steps">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_c4" edge="1" parent="1" source="orch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="state" value="Reads and updates">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="w1" edge="1" parent="1" source="classify" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="plan" value="Classified&lt;div&gt;&amp;nbsp;request&lt;/div&gt;">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="w2" edge="1" parent="1" source="plan" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="retrieve" value="Research&lt;div&gt;&amp;nbsp;plan&lt;/div&gt;">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="w3" edge="1" parent="1" source="retrieve" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="validate" value="Candidate evidence">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="w4" edge="1" parent="1" source="validate" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="synth" value="Verified evidence and gaps">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="w5" edge="1" parent="1" source="validate" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;exitX=0;exitY=0;exitDx=0;exitDy=0;" target="plan" value="Requests more evidence (bounded)">
+                    <mxGeometry relative="1" x="-0.1746" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1320" y="410"/>
+                            <mxPoint x="1320" y="400"/>
+                            <mxPoint x="1135" y="400"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_r1" edge="1" parent="1" source="retrieve" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="ext_official" value="Queries">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_r2" edge="1" parent="1" source="retrieve" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="ext_search" value="Searches">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1810" y="290"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_l1" edge="1" parent="1" source="g_workflow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="llm_gw" value="Uses for language tasks">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_l2" edge="1" parent="1" source="llm_gw" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="ext_llm" value="Sends prompts; receives completions">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_o1" edge="1" parent="1" source="orch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;" target="obs" value="Emits execution&amp;nbsp;&lt;div&gt;events&lt;/div&gt;">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="840" y="425"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_o2" edge="1" parent="1" source="obs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="ext_telemetry" value="Exports telemetry">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_cfg1" edge="1" parent="1" source="operator" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="config" value="Sets">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_cfg2" edge="1" parent="1" source="config" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;" target="orch" value="Supplies limits and settings">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

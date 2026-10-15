@@ -1,0 +1,138 @@
+<mxfile host="65bd71144e">
+    <diagram id="deploy-local" name="Deployment - Local">
+        <mxGraphModel dx="1270" dy="981" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1320" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="t" parent="1" style="text;html=1;align=left;verticalAlign=top;fontSize=20;fontStyle=1;" value="Physical Architecture · Local Deployment" vertex="1">
+                    <mxGeometry height="40" width="900" x="40" y="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="user" parent="1" style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;align=center;metaEdit=1;resizable=0;fillColor=#FFFFFF;strokeColor=#073B6F;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Housing Information User&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Person]&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="180" width="200" x="40" y="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="operator" parent="1" style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;align=center;metaEdit=1;resizable=0;fillColor=light-dark(#ffffff, #90c2f3);strokeColor=#073B6F;fontColor=#ffffff;fontSize=11;gradientColor=none;" value="&lt;b&gt;System Operator&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Person]&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="180" width="200" x="40" y="880" as="geometry"/>
+                </mxCell>
+                <mxCell id="ws" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=2;fillColor=none;dashed=1;dashPattern=8 4;strokeColor=#444444;fontColor=#444444;fontSize=13;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;" value="&lt;b&gt;Developer workstation&lt;/b&gt; [Deployment Node: localhost]" vertex="1">
+                    <mxGeometry height="1160" width="1220" x="300" y="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="browser" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=3;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;" value="&lt;b&gt;Web browser&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="220" width="380" x="340" y="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="spa" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#FFFFFF;strokeColor=#0000FF;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Research Client&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Container: Vue.js SPA + A2A JS client]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Submits research requests, streams progress, renders answers, citations and limitations.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="150" width="320" x="370" y="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="vite" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=3;fillColor=#FAFAFA;strokeColor=#888888;fontColor=#333333;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;" value="&lt;b&gt;Vite dev server&lt;/b&gt;&lt;br&gt;[Deployment Node: Node.js · :5173]&lt;br&gt;&lt;br&gt;Serves the Vue.js bundle. Optional dev proxy to the agent avoids CORS." vertex="1">
+                    <mxGeometry height="130" width="380" x="340" y="410" as="geometry"/>
+                </mxCell>
+                <mxCell id="env" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#FFF2CC;strokeColor=#D6B656;fontColor=#000000;fontSize=11;" value="&lt;b&gt;.env&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Configuration: environment variables, git-ignored]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Model endpoint, Google API key and engine ID, Langfuse keys, timeouts and research limits.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="150" width="380" x="340" y="820" as="geometry"/>
+                </mxCell>
+                <mxCell id="py" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=3;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;" value="&lt;b&gt;Agent server process&lt;/b&gt;&lt;br&gt;[Deployment Node: Python 3.11 · Uvicorn · :8000]" vertex="1">
+                    <mxGeometry height="610" width="700" x="780" y="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="a2a" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#FFFFFF;strokeColor=#3C7FC0;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;A2A Server&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Container: a2a-sdk · Starlette app]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Agent card at /.well-known/agent-card.json; JSON-RPC request handler; SSE streaming.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="150" width="300" x="810" y="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="tasks" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;size=12;fillColor=#FFFFFF;strokeColor=#3C7FC0;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Task Store&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[In memory: a2a-sdk InMemoryTaskStore]&lt;/div&gt;&lt;br&gt;&lt;div&gt;A2A task status and artifacts. Lost on restart.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="150" width="300" x="1150" y="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="executor" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#FFFFFF;strokeColor=#3C7FC0;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Housing Agent Executor&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Container: a2a-sdk AgentExecutor]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Maps A2A messages to graph input, contextId to thread_id, and graph events to task updates.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="150" width="300" x="810" y="380" as="geometry"/>
+                </mxCell>
+                <mxCell id="graph" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#FFFFFF;strokeColor=#3C7FC0;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Research Graph&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Container: LangGraph StateGraph]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Nodes: classify, plan, research, validate, synthesize. Tool adapters, OpenAI-compatible chat model, Langfuse callback.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="150" width="300" x="810" y="570" as="geometry"/>
+                </mxCell>
+                <mxCell id="saver" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;size=12;fillColor=#FFFFFF;strokeColor=#3C7FC0;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Short-term Memory&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[In memory: LangGraph InMemorySaver]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Per-thread research state checkpoints. Lost on restart.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="150" width="300" x="1150" y="570" as="geometry"/>
+                </mxCell>
+                <mxCell id="lms" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=3;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;" value="&lt;b&gt;LM Studio&lt;/b&gt;&lt;br&gt;[Deployment Node: desktop app · :1234]" vertex="1">
+                    <mxGeometry height="220" width="330" x="780" y="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="model" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#FFFFFF;strokeColor=#736782;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Local Model Server&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[OpenAI-compatible API /v1]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Loaded model must support tool calling or structured output.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="140" width="290" x="800" y="850" as="geometry"/>
+                </mxCell>
+                <mxCell id="lf" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=3;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;" value="&lt;b&gt;Langfuse&lt;/b&gt;&lt;br&gt;[Deployment Node: Docker Compose]" vertex="1">
+                    <mxGeometry height="400" width="330" x="1150" y="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="lfweb" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#FFFFFF;strokeColor=#3C7FC0;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Langfuse Web&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Container: :3000]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Ingestion API and tracing UI.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="130" width="290" x="1170" y="850" as="geometry"/>
+                </mxCell>
+                <mxCell id="lfdata" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;size=12;fillColor=#FFFFFF;strokeColor=#3C7FC0;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Langfuse Worker &amp;amp; Storage&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[Containers: worker, Postgres, ClickHouse, Redis, MinIO]&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="160" width="290" x="1170" y="1010" as="geometry"/>
+                </mxCell>
+                <mxCell id="net" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=2;fillColor=none;dashed=1;dashPattern=8 4;strokeColor=#444444;fontColor=#444444;fontSize=13;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;" value="&lt;b&gt;Internet&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="620" width="380" x="1580" y="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="google" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#FFFFFF;strokeColor=#736782;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Google Programmable Search&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[External: Custom Search JSON API]&lt;/div&gt;&lt;br&gt;&lt;div&gt;Web search for current news, reports and studies.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="160" width="320" x="1610" y="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="official" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;fillColor=#FFFFFF;strokeColor=#736782;fontColor=#ffffff;fontSize=11;" value="&lt;b&gt;Official &amp;amp; Public Data Sources&lt;/b&gt;&lt;div style=&#39;font-size:10px&#39;&gt;[External: HTTPS APIs and portals]&lt;/div&gt;&lt;br&gt;&lt;div&gt;INE, BOE, Banco de España, MIVAU, registries, regional and municipal open data.&lt;/div&gt;" vertex="1">
+                    <mxGeometry height="180" width="320" x="1610" y="360" as="geometry"/>
+                </mxCell>
+                <mxCell id="planned" parent="1" style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#555555;whiteSpace=wrap;" value="&lt;b&gt;Not implemented yet:&lt;/b&gt; SQLite for long-term memory. Short-term memory and A2A tasks stay in memory for now." vertex="1">
+                    <mxGeometry height="60" width="380" x="1580" y="760" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" edge="1" parent="1" source="user" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="spa" value="Uses">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2" edge="1" parent="1" source="vite" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="spa" value="Serves SPA bundle (HTTP)">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3" edge="1" parent="1" source="spa" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="a2a" value="A2A JSON-RPC over HTTP; SSE streaming">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e4" edge="1" parent="1" source="a2a" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="tasks" value="Reads/writes tasks">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5" edge="1" parent="1" source="a2a" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="executor" value="execute() / cancel()">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e6" edge="1" parent="1" source="executor" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="graph" value="Streams graph run">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e7" edge="1" parent="1" source="graph" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="saver" value="Checkpoints state">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e8" edge="1" parent="1" source="graph" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="model" value="Chat completions (HTTP)">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e9" edge="1" parent="1" source="graph" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="google" value="Search queries (HTTPS + API key)">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e10" edge="1" parent="1" source="graph" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="official" value="Data requests (HTTPS)">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e11" edge="1" parent="1" source="graph" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;" target="lfweb" value="Traces (HTTP, callback handler)">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e12" edge="1" parent="1" source="lfweb" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="lfdata" value="Queues and stores">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e13" edge="1" parent="1" source="env" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;dashed=1;" target="py" value="Loaded at startup">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e14" edge="1" parent="1" source="operator" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="env" value="Edits">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e15" edge="1" parent="1" source="operator" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#707070;fontColor=#404040;fontSize=10;labelBackgroundColor=#ffffff;" target="lfweb" value="Reviews traces (browser)">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="mapping" name="Logical to Physical Mapping">
+        <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="t" value="Logical Components → Physical Implementation" style="text;html=1;align=left;verticalAlign=top;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="20" width="900" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="tbl" value="&lt;table style=&#39;border-collapse:collapse;width:100%&#39;&gt;&lt;tr&gt;&lt;th style=&#39;background:#438DD5;color:#fff;padding:6px;text-align:left;border:1px solid #3C7FC0&#39;&gt;Logical component&lt;/th&gt;&lt;th style=&#39;background:#438DD5;color:#fff;padding:6px;text-align:left;border:1px solid #3C7FC0&#39;&gt;Physical implementation&lt;/th&gt;&lt;th style=&#39;background:#438DD5;color:#fff;padding:6px;text-align:left;border:1px solid #3C7FC0&#39;&gt;Location in repo&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Research Client&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;Vue.js SPA in the browser, served by Vite; A2A JS client&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;web client (new)&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Agent Interface&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;a2a-sdk Starlette app on Uvicorn; AgentCard; DefaultRequestHandler; InMemoryTaskStore&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;a2a/agent_card.py, server.py&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Workflow Orchestrator&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;LangGraph StateGraph, compiled once at startup&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;graph.py&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Request Classifier, Research Planner, Evidence Validator, Answer Synthesizer&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;LangGraph nodes&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;workflow/classifier.py, planner.py, validator.py, synthesizer.py&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Evidence Retriever&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;LangGraph node calling tool adapters over HTTPS&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;workflow/researcher.py, tools/&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Research State&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;Typed graph state + LangGraph InMemorySaver (thread_id = A2A contextId)&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;state.py, domain/&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Language Model Gateway&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;OpenAI-compatible chat model client; base URL points to LM Studio&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;config.py&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Configuration&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;Environment variables loaded from a git-ignored .env&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;config.py, .env.example&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Observability&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;Langfuse callback handler + Python logging&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;observability.py&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Agent Interface (bridge to workflow)&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;a2a-sdk AgentExecutor wrapping the compiled graph&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;a2a/executor.py&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Language Model Service&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;LM Studio local server (:1234, /v1)&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;external&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Web Search Service&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;Google Programmable Search, Custom Search JSON API&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;external&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Telemetry Service&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;Langfuse self-hosted via Docker Compose (:3000)&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;external&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;b&gt;Official &amp;amp; Public Data Sources&lt;/b&gt;&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;INE, BOE, Banco de España, MIVAU, regional and municipal portals&lt;/td&gt;&lt;td style=&#39;padding:6px;border:1px solid #cccccc;vertical-align:top&#39;&gt;&lt;code&gt;external&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;overflow=fill;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="80" width="1500" height="820" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

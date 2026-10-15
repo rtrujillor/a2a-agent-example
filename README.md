@@ -1,188 +1,160 @@
-# Spain Housing Access Problem -  A2A Agent
+# Spain Housing Access — A2A Research Agent
 
+An Agent-to-Agent (A2A) research agent that explains housing access in Spain
+using current, verifiable evidence: prices, rents, wages, supply, legislation,
+public policy, tourism, short-term rentals, and social movements. A Vue.js web
+client talks to the agent over the A2A protocol.
 
-An Agent-to-Agent (A2A) application for researching, summarizing, and presenting
-current information about housing-access challenges in Spain.
+Research can cover Spain as a whole, an autonomous community, a province, a
+municipality, or a neighborhood when reliable data exists. Answers are neutral,
+cited, and state their limitations. The agent does not give personalized legal
+or financial advice, valuations, or forecasts. See [AGENTS.md](AGENTS.md) for
+the full scope, sourcing, and response rules.
 
-The project uses LangGraph to coordinate the agent's research workflow and
-includes a client for communicating with the agent through the A2A protocol.
-The agent is designed for deployment to an A2A-compatible service such as
-LiteLLM.
-
-## Purpose
-
-The agent helps users investigate questions about housing access in Spain. It
-searches for recent information, assesses the quality of its sources, compares
-the findings, and produces a clear, evidence-based response with citations.
-
-Research can cover Spain as a whole or focus on an autonomous community,
-province, or municipality.
-
-## Features
-
-- A2A-compatible agent and client.
-- LangGraph-based research workflow.
-- Internet research through Google Search.
-- Evaluation of source relevance, reliability, recency, and potential bias.
-- Comparison of multiple sources to identify agreements and discrepancies.
-- Clear separation between reported facts, analysis, and inference.
-- Responses supported by links to the sources used.
-- Support for national, regional, provincial, and municipal research.
-
-## How It Works
-
-When the agent receives a request, it:
-
-1. Interprets the question or instructions.
-2. Identifies the information required to answer the request.
-3. Searches Google for relevant and current information.
-4. Evaluates the quality and potential bias of the available sources.
-5. Compares information across multiple sources.
-6. Synthesizes the findings into a response suited to the user's request.
-7. Includes citations or links so the findings can be verified.
-
-If reliable information is unavailable, incomplete, or conflicting, the agent
-should explain the limitation rather than present an uncertain claim as fact.
+> **Status:** early scaffolding. The architecture is defined; the workflow,
+> tools, A2A server, and web client are not implemented yet.
 
 ## Architecture
 
-The project has two primary components:
+The diagrams are the primary design reference. Open them in draw.io or the
+VS Code Draw.io extension.
 
-- **Agent:** Runs the LangGraph workflow, performs research, evaluates sources,
-  and prepares the final answer.
-- **Client:** Sends A2A requests to the agent and presents its responses.
+| Diagram | Content |
+| --- | --- |
+| [use-cases.drawio](docs/architecture/use-cases.drawio) | Actors, use cases, and external providers |
+| [c4-logical.drawio](docs/architecture/c4-logical.drawio) | C1 context, C2 containers, C3 agent components (technology-free) |
+| [physical-architecture.drawio](docs/architecture/physical-architecture.drawio) | Local deployment and logical-to-physical mapping |
 
-```text
-User -> A2A Client -> A2A Agent -> Google Search
-                          |
-                          +-> Source evaluation and synthesis
-                          |
-                          +-> Cited response -> A2A Client -> User
+### Use cases
+
+- **Housing information user:** submits a research request, receives progress
+  or errors, and reviews the answer with citations and limitations.
+- **System operator:** configures providers and limits, and monitors execution
+  and answer quality.
+
+### Logical view
+
+```mermaid
+flowchart LR
+    U[User] --> C[Research Client]
+    C <-->|A2A tasks, status, results| I[Agent Interface]
+    I --> O[Workflow Orchestrator]
+    subgraph W[Research Workflow]
+        CL[Classify] --> PL[Plan] --> R[Retrieve] --> V[Validate] --> S[Synthesize]
+        V -.->|more evidence, bounded| PL
+    end
+    O --> W
+    R --> SRC[(Official sources<br/>Web search)]
+    W --> LM[Language Model Gateway] --> LLM[(Language model)]
+    O -.-> OBS[Observability] --> T[(Telemetry)]
 ```
 
-### Project Structure
+Supporting components: **Research State** (shared workflow state) and
+**Configuration** (providers, timeouts, retry and research-depth limits).
+
+### Physical view (local)
+
+| Logical component | Implementation |
+| --- | --- |
+| Research Client | Vue.js SPA with an A2A JavaScript client, served by Vite (`:5173`) |
+| Agent Interface | `a2a-sdk` Starlette app on Uvicorn (`:8000`), agent card at `/.well-known/agent-card.json`, `InMemoryTaskStore` |
+| Workflow bridge | `a2a-sdk` `AgentExecutor` wrapping the compiled graph; A2A `contextId` → LangGraph `thread_id` |
+| Workflow Orchestrator and steps | LangGraph `StateGraph` with classify, plan, research, validate, and synthesize nodes |
+| Research State | Typed graph state + LangGraph `InMemorySaver` (short-term memory) |
+| Language Model Service | LM Studio, OpenAI-compatible API (`:1234/v1`) |
+| Web Search Service | Google Programmable Search (Custom Search JSON API) |
+| Telemetry Service | Langfuse, self-hosted with Docker Compose (`:3000`) |
+| Configuration | Environment variables from a git-ignored `.env` |
+
+All state is in memory and is lost on restart. SQLite for long-term memory is
+planned but not in scope yet. API keys live only on the agent server; the
+browser talks only to the A2A endpoint.
+
+### Project structure
 
 ```text
 src/
-├── a2a_client/                 # Client transport and request handling
+├── a2a_client/                 # Python A2A client
 └── housing_access_agent/
-    ├── a2a/                    # Agent card and A2A execution adapter
-    ├── domain/                 # Shared research and evidence types
-    ├── tools/                  # Search and official-source adapters
-    ├── workflow/               # Classify, plan, research, validate, synthesize
+    ├── a2a/                    # Agent card and AgentExecutor
+    ├── domain/                 # Research and evidence types
+    ├── tools/                  # Google Search and official-source adapters
+    ├── workflow/               # classifier, planner, researcher, validator, synthesizer
     ├── config.py               # Environment-based configuration
     ├── graph.py                # LangGraph composition root
-    ├── observability.py        # Tracing, logging, and quality signals
+    ├── observability.py        # Logging, tracing, quality signals
     ├── prompts.py              # Agent prompts
     ├── server.py               # A2A server entry point
-    └── state.py                # Shared workflow state
+    └── state.py                # Workflow state
 tests/
-├── integration/               # A2A and external-boundary tests
-└── unit/                       # Workflow and tool tests
+├── integration/a2a/            # A2A protocol tests
+└── unit/                       # workflow/ and tools/ tests
+docs/architecture/              # draw.io diagrams
 ```
+
+The Vue.js web client is not in the repository yet.
 
 ## Prerequisites
 
-Before setting up the project, ensure that you have:
-
-- A supported runtime for the agent and client.
-- Access to an A2A-compatible service.
-- Credentials for the configured Google Search provider.
-- Any model-provider credentials required by the deployment environment.
+- Python 3.11+
+- Node.js (for the Vue.js client)
+- LM Studio with a model that supports tool calling or structured output
+- Docker (for self-hosted Langfuse)
+- Google Programmable Search API key and search engine ID. Check that the
+  Custom Search JSON API is still available to new projects before relying on it.
 
 ## Configuration
 
-Store configuration in environment variables or a local environment file that
-is excluded from version control. Never commit API keys or other credentials.
+Copy `.env.example` to `.env` and fill in the values. Never commit `.env`.
 
-The configuration reference should document:
+| Variable | Purpose |
+| --- | --- |
+| `MODEL_NAME`, `MODEL_API_KEY` | Language model and its key |
+| `GOOGLE_SEARCH_API_KEY`, `GOOGLE_SEARCH_ENGINE_ID` | Google Programmable Search |
+| `A2A_HOST`, `A2A_PORT`, `A2A_AGENT_URL` | Agent bind address and public A2A URL |
 
-- The language-model provider and model.
-- Google Search credentials and search-engine settings.
-- The agent's host, port, and public A2A endpoint.
-- Client connection settings.
-- Logging and observability options.
+The model base URL (LM Studio), Langfuse keys, and research limits still need
+to be added to `.env.example`.
 
-## Installation
+## Development setup
 
-1. Clone the repository.
-2. Install the agent and client dependencies using the project's package
-   manager.
-3. Configure the required environment variables.
-4. Verify that the configured model and search services are accessible.
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+pytest
+```
 
-## Running the Agent
+Run commands for the agent server and web client will be documented once they
+exist.
 
-1. Start the configured A2A-compatible service.
-2. Start the agent and expose its A2A endpoint.
-3. Confirm that the agent card or discovery endpoint is available.
-
-## Running the Client
-
-1. Configure the client with the agent's A2A endpoint.
-2. Start the client.
-3. Submit a housing-related question or research instruction.
-4. Review the response and its cited sources.
-
-## Example Requests
+## Example requests
 
 - What factors are affecting access to rental housing in Madrid?
 - Summarize recent changes in residential rental prices in Barcelona.
 - Compare housing-access challenges in Valencia and Málaga.
 - What public housing measures have recently been announced in Spain?
-- Explain the available evidence about short-term rentals and local housing
-  supply in a specific municipality.
+- What evidence links short-term rentals to housing supply in a municipality?
 
-## Deployment
+## Response guidelines
 
-The agent is intended to run on an A2A-compatible service such as LiteLLM. A
-deployment should provide:
+Answers should:
 
-- Secure secret and configuration management.
-- HTTPS for public endpoints.
-- Authentication and authorization where appropriate.
-- Request timeouts and rate limits for external services.
-- Logging, tracing, and error monitoring.
-- A documented health-check mechanism.
-
-## Source and Response Guidelines
-
-Agent responses should:
-
-- Prefer authoritative, recent, and directly relevant sources.
-- Use multiple independent sources where practical.
-- Consider publication date, methodology, and potential bias.
-- Distinguish facts from interpretation or inference.
-- Identify material disagreements or uncertainty.
-- Link to the sources supporting the response.
-- Avoid overstating conclusions when the evidence is limited.
-
-## Development
-
-Keep changes focused and preserve established project conventions. When adding
-behavior:
-
-- Add or update relevant tests.
-- Run the available test, lint, and build checks.
-- Update this README when setup, configuration, commands, or behavior changes.
-- Do not add secrets or machine-specific configuration.
-
-## Testing
-
-Tests should cover the agent workflow, client communication, source handling,
-error cases, and A2A protocol behavior. Integration tests that access external
-services should use safe test credentials or documented mocks.
+- Prefer official and primary sources (INE, MIVAU, BOE, Banco de España,
+  registries, regional and municipal authorities).
+- Distinguish facts, estimates, opinions, and causal hypotheses.
+- Separate publication dates from event dates for time-sensitive claims.
+- Attribute stakeholder claims and differing estimates.
+- Cite every supporting source and state uncertainty or missing verification.
+- Answer in the user's language, defaulting to Spanish.
 
 ## Contributing
 
-Before submitting a change:
-
-1. Keep the change limited to a clear purpose.
-2. Add tests for new or modified behavior.
-3. Run the relevant project checks.
-4. Update documentation affected by the change.
-5. Confirm that no credentials or private data are included.
+1. Keep each change focused, and keep the diagrams in sync with design changes.
+2. Add or update tests for new or modified behavior.
+3. Run the tests and any lint or build checks.
+4. Update this README when setup, configuration, commands, or behavior change.
+5. Never commit credentials or machine-specific configuration.
 
 ## License
 
-Add the project's license information here.
+[MIT](LICENSE) © 2026 Ricardo Trujillo Rodríguez

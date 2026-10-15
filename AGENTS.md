@@ -36,6 +36,7 @@ changes.
 | Concern | Technology |
 | --- | --- |
 | Web client | Vue.js SPA with an A2A JavaScript client, served by Vite |
+| Web design system | shadcn-vue (Reka UI primitives) + Tailwind CSS 4; tokens in `web/src/styles/main.css` |
 | A2A server | Python `a2a-sdk` 1.x: Starlette app built from `create_jsonrpc_routes` and `create_agent_card_routes`, on Uvicorn; `InMemoryTaskStore` |
 | Workflow | LangGraph `StateGraph`, compiled once at startup |
 | Short-term memory | LangGraph `InMemorySaver`; thread ID = A2A `contextId` |
@@ -93,6 +94,18 @@ Rules:
 - Show streamed progress, errors, the answer, citations, and limitations.
 - Render model output as sanitized Markdown; never use `v-html` on unsanitized
   content.
+- Define colors, radii, and fonts only as tokens in `src/styles/main.css`;
+  components use token utilities (`bg-primary`, `text-muted-foreground`).
+- Shared primitives live in `src/components/ui/`, added with the shadcn-vue
+  CLI. A new look becomes a CVA variant there, never one-off classes in app
+  components.
+- No raw style values outside `src/styles/`: no hex colors, no color
+  functions (`rgb(`, `hsl(`, `oklch(`, ...), and no arbitrary Tailwind values
+  with literals (`p-[13px]`, `bg-[#fff]`). `var(--...)` arbitrary values and
+  attribute variants (`data-[state=open]:`) are allowed. `pnpm lint` enforces
+  this through `lint:tokens`; mark rare exceptions with `style-tokens-allow`.
+- The theme follows the OS color-scheme preference (CSS only). Keep WCAG 2.2
+  AA contrast in both themes when changing tokens.
 
 ## Research Workflow
 

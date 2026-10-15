@@ -42,10 +42,10 @@ const exclusions = [
         class="flex flex-col gap-3 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500"
       >
         <h1 class="font-heading text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-          Acceso a la vivienda en España
+          Problema de acceso a la vivienda en España
         </h1>
         <p class="text-lg text-pretty text-muted-foreground">
-          Un agente de investigación que explica el acceso a la vivienda con datos actuales y
+          Un agente de investigación que explica o trata de buscar referecias sobre el problema el acceso a la vivienda con datos actuales y
           fuentes verificables, del conjunto del país a cada municipio.
         </p>
       </div>

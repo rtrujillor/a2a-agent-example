@@ -10,9 +10,14 @@ src/
 │   └── ui/           # shadcn-vue primitives (vendored, owned by us)
 ├── composables/      # useResearchTask: task state and streaming
 ├── lib/utils.ts      # cn(): merges Tailwind classes
+├── router/index.ts   # routes table, createAppRouter(history), app router
 ├── services/         # a2aClient: agent card, send, stream
+├── stores/           # Pinia stores (empty until the first real store)
+├── test-utils/       # mountWithPlugins(): fresh Pinia + memory router
 ├── types/            # Research request and answer types
+├── views/            # Routed pages: HomeView, NotFoundView
 ├── styles/main.css   # the only place for tokens, themes, and base styles
+├── App.vue           # layout shell: header + <main><RouterView/></main>
 └── __tests__/        # Vitest unit tests
 scripts/
 └── check-style-tokens.mjs  # lint:tokens, rejects raw style values
@@ -28,6 +33,45 @@ pnpm test:unit
 pnpm lint
 pnpm build             # type-check + production build
 ```
+
+## Routing and state
+
+[Vue Router](https://router.vuejs.org) 5.3.1 and [Pinia](https://pinia.vuejs.org)
+4.0.3, pinned exactly. Both are registered once in `src/main.ts`.
+
+| Path               | Name       | View                         |
+| ------------------ | ---------- | ---------------------------- |
+| `/`                | `home`     | `HomeView` (eager)           |
+| `/:pathMatch(.*)*` | `notFound` | `NotFoundView` (lazy import) |
+
+### Adding a route
+
+1. Create the page in `src/views/<Name>View.vue` using token utilities only.
+2. Add an entry to `routes` in `src/router/index.ts` **before** `notFound`,
+   with a `name` and a lazy component: `component: () => import('@/views/<Name>View.vue')`.
+   Only `HomeView` is imported eagerly.
+3. Link to it by name, never by a hard-coded path:
+   `<RouterLink :to="{ name: '<name>' }">`.
+4. Test it with `mountWithPlugins(App, { route: '/<path>' })` from
+   `src/test-utils/mount.ts`, which builds a fresh Pinia and a memory-history
+   router per call.
+
+### History mode
+
+URLs are real paths (`createWebHistory`), not hashes. `pnpm dev` and
+`pnpm preview` already serve `index.html` for unknown paths. Any other static
+host must rewrite unknown paths to `index.html`, or direct loads and reloads
+of pages other than `/` return a server 404.
+
+### Pinia conventions
+
+- Setup stores only: `defineStore('<id>', () => { ... })`.
+- One store per file in `src/stores/`, exported as `use<Name>Store`.
+- Stores call `services/`; components use stores and never call `services/`
+  directly.
+- State lives in memory only. No persistence plugin and no `localStorage`
+  until persistence is designed.
+- Store unit tests call `setActivePinia(createPinia())` in `beforeEach`.
 
 ## Design system
 

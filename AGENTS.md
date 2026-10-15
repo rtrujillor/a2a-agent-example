@@ -35,7 +35,7 @@ changes.
 
 | Concern | Technology |
 | --- | --- |
-| Web client | Vue.js SPA with an A2A JavaScript client, served by Vite |
+| Web client | Vue.js SPA with Vue Router (history mode), Pinia (setup stores, in memory), and an A2A JavaScript client, served by Vite |
 | Web design system | shadcn-vue (Reka UI primitives) + Tailwind CSS 4; tokens in `web/src/styles/main.css` |
 | A2A server | Python `a2a-sdk` 1.x: Starlette app built from `create_jsonrpc_routes` and `create_agent_card_routes`, on Uvicorn; `InMemoryTaskStore` |
 | Workflow | LangGraph `StateGraph`, compiled once at startup |
@@ -91,6 +91,8 @@ Rules:
 - Use pnpm only (version pinned in `packageManager`); never commit an npm or
   yarn lockfile.
 - Talk only to the agent's A2A endpoint; discover it through the agent card.
+- Components never call `services/` directly; Pinia stores call services
+  and components use the stores.
 - Show streamed progress, errors, the answer, citations, and limitations.
 - Render model output as sanitized Markdown; never use `v-html` on unsanitized
   content.

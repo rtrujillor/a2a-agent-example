@@ -114,4 +114,34 @@ describe('research store', () => {
     await second
     expect(store.taskId).toBe('task-2')
   })
+
+  describe('applyExample', () => {
+    it('fills the question, clears a validation error, and sends nothing', async () => {
+      const store = useResearchStore()
+      await store.submit()
+      expect(store.status).toBe('invalid')
+
+      store.applyExample('¿Cuánto ha subido el alquiler en Madrid?')
+
+      expect(store.question).toBe('¿Cuánto ha subido el alquiler en Madrid?')
+      expect(store.status).toBe('idle')
+      expect(store.validationError).toBeUndefined()
+      expect(submitResearch).not.toHaveBeenCalled()
+    })
+
+    it('keeps the busy status while a request is in flight', async () => {
+      let resolve!: (submission: ResearchSubmission) => void
+      submitResearch.mockReturnValue(new Promise((r) => (resolve = r)))
+      const store = useResearchStore()
+      store.question = 'Primera pregunta'
+      const pending = store.submit()
+
+      store.applyExample('Otra pregunta')
+      expect(store.status).toBe('submitting')
+      expect(store.canSubmit).toBe(false)
+
+      resolve(accepted())
+      await pending
+    })
+  })
 })

@@ -9,6 +9,9 @@ export type SubmissionStatus = 'idle' | 'invalid' | 'submitting' | 'submitted' |
 
 export type ValidationError = 'empty' | 'tooLong'
 
+// Source type carried by every citation, as classified by the agent.
+export type SourceType = 'official' | 'media' | 'market' | 'other'
+
 // One stream event. `state` is the A2A task-state name (e.g. 'TASK_STATE_WORKING').
 export type ResearchEvent =
   | { kind: 'task'; taskId: string; contextId: string; state: string }

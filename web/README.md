@@ -69,8 +69,9 @@ of pages other than `/` return a server 404.
 - One store per file in `src/stores/`, exported as `use<Name>Store`.
 - Stores call `services/`; components use stores and never call `services/`
   directly.
-- State lives in memory only. No persistence plugin and no `localStorage`
-  until persistence is designed.
+- State lives in memory only. No persistence plugin. The one exception is
+  the theme choice (`useThemeStore`, `src/stores/theme.ts`), which is kept in
+  `localStorage` under the key `theme`. Research state is never stored.
 - Store unit tests call `setActivePinia(createPinia())` in `beforeEach`.
 
 ## Research request
@@ -107,10 +108,22 @@ primitives) with Tailwind CSS 4. `components.json` holds the CLI settings.
   `src/styles/main.css`, mapped to Tailwind utilities with `@theme inline`.
   Components use the utilities (`bg-primary`, `text-muted-foreground`), never
   raw values. Change a token there and every component follows.
-- **Themes:** light and dark follow the operating system preference through
-  `@media (prefers-color-scheme: dark)`; the `dark:` variant uses the same
-  query. There is no manual toggle.
-- **Fonts:** the system font stack; no web fonts are loaded.
+- **Palette:** civic/editorial. Warm "paper" neutrals and a deep blue
+  primary in light, blue "ink" in dark. Domain tokens: `source-official`,
+  `source-media`, `source-market`, `source-other` (citation badges) and
+  `notice` (limitation notices, distinct from `destructive` errors). The
+  contrast ratios of every pair are recorded in `main.css`; recheck them when
+  changing a value.
+- **Themes:** the header's theme control offers Claro, Oscuro, and Sistema
+  (the default). Dark tokens live under `.dark`, and the `dark:` variant
+  matches that class. An inline script in `index.html` applies the saved
+  choice before first paint; `useThemeStore` keeps it in sync and follows
+  the system live on Sistema. Keep the script and the store on the same
+  storage key and values.
+- **Fonts:** system fonts only, and no web fonts are loaded. Headings use a
+  serif stack (`font-heading`: Charter, Iowan Old Style, Georgia, ...);
+  interface and body text use the system sans-serif stack.
+- **Motion:** decorative animation is always prefixed `motion-safe:`.
 - **Answer prose:** wrap rendered Markdown in `.prose` for token-based
   headings, lists, links, and code.
 - **Lint guard:** `pnpm lint` runs `lint:tokens`, which fails on hex colors,
@@ -133,3 +146,8 @@ Then:
    them with token utilities such as `rounded-md`.
 3. New looks become CVA variants in `src/components/ui/`, not one-off classes
    in app components.
+4. Check `git diff src/styles/main.css`: the CLI may insert a Google Fonts
+   `@import` or duplicate base styles. Revert those edits; tokens are
+   maintained by hand.
+5. When the CLI asks to overwrite an existing primitive, answer no unless the
+   update is intended.

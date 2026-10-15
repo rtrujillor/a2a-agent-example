@@ -35,7 +35,7 @@ changes.
 
 | Concern | Technology |
 | --- | --- |
-| Web client | Vue.js SPA with Vue Router (history mode), Pinia (setup stores, in memory), and an A2A JavaScript client, served by Vite |
+| Web client | Vue.js SPA with Vue Router (history mode), Pinia (setup stores, in memory; only the theme choice is kept in `localStorage`), and an A2A JavaScript client, served by Vite |
 | Web design system | shadcn-vue (Reka UI primitives) + Tailwind CSS 4; tokens in `web/src/styles/main.css` |
 | A2A server | Python `a2a-sdk` 1.x: Starlette app built from `create_jsonrpc_routes` and `create_agent_card_routes`, on Uvicorn; `InMemoryTaskStore` |
 | Workflow | LangGraph `StateGraph`, compiled once at startup |
@@ -106,8 +106,11 @@ Rules:
   with literals (`p-[13px]`, `bg-[#fff]`). `var(--...)` arbitrary values and
   attribute variants (`data-[state=open]:`) are allowed. `pnpm lint` enforces
   this through `lint:tokens`; mark rare exceptions with `style-tokens-allow`.
-- The theme follows the OS color-scheme preference (CSS only). Keep WCAG 2.2
-  AA contrast in both themes when changing tokens.
+- Users choose the theme (light, dark, or system, the default) from the
+  header. The `dark` class on `<html>` is set before first paint by
+  `index.html` and kept in sync by the theme store. Keep WCAG 2.2 AA
+  contrast in both themes when changing tokens.
+- Prefix decorative animation with `motion-safe:`.
 
 ## Research Workflow
 

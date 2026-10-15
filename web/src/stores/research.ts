@@ -59,6 +59,14 @@ export const useResearchStore = defineStore('research', () => {
     }
   }
 
+  // Fills the field with an example question without sending it. A request
+  // in flight keeps its busy status, so it cannot be submitted twice.
+  function applyExample(text: string) {
+    question.value = text
+    validationError.value = undefined
+    if (!isSubmitting.value) status.value = 'idle'
+  }
+
   async function reset() {
     await closeCurrent()
     question.value = ''
@@ -75,6 +83,7 @@ export const useResearchStore = defineStore('research', () => {
     isSubmitting,
     canSubmit,
     submit,
+    applyExample,
     reset,
   }
 })

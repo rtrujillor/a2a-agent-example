@@ -36,14 +36,34 @@ describe('ResearchRequestForm', () => {
   beforeEach(() => submitResearch.mockReset())
   afterEach(() => wrapper?.unmount())
 
-  it('appears below the intro with a labeled question field', async () => {
+  it('comes before the scope details, with a labeled field and a named submit button', async () => {
     const { textarea, button } = await mountHome()
     const html = wrapper.html()
 
-    expect(html.indexOf('Qué no ofrece')).toBeLessThan(html.indexOf('Haz tu pregunta'))
+    expect(html.indexOf('<h1')).toBeLessThan(html.indexOf('<form'))
+    expect(html.indexOf('</form>')).toBeLessThan(html.indexOf('Qué no ofrece'))
     const label = wrapper.find(`label[for="${textarea.attributes('id')}"]`)
     expect(label.text()).toBe('Pregunta sobre el acceso a la vivienda en España')
-    expect(button.text()).toBe('Enviar')
+    expect(button.attributes('aria-label')).toBe('Enviar')
+  })
+
+  it('grows with the question up to a maximum height', async () => {
+    const { textarea } = await mountHome()
+    expect(textarea.classes()).toEqual(expect.arrayContaining(['field-sizing-content', 'max-h-64']))
+  })
+
+  it.each([
+    ['MacIntel', '⌘', 'Comando'],
+    ['Win32', 'Ctrl', 'Control'],
+  ])('shows the submit shortcut next to the button on %s', async (platform, key, spoken) => {
+    vi.stubGlobal('navigator', { ...navigator, platform })
+    const { button } = await mountHome()
+    const hint = wrapper.find('[data-testid="submit-shortcut"]')
+
+    expect(hint.findAll('kbd').map((kbd) => kbd.text())).toEqual([key, '↵'])
+    expect(hint.element.parentElement).toBe(button.element.parentElement)
+    expect(wrapper.text()).toContain(`pulsa ${spoken} más Intro`)
+    vi.unstubAllGlobals()
   })
 
   it('does not submit on Enter alone', async () => {

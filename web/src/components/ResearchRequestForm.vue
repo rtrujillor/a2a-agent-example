@@ -1,7 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import { computed, ref } from 'vue'
+import { ArrowUpIcon } from '@lucide/vue'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupTextarea,
+} from '@/components/ui/input-group'
+import { Kbd, KbdGroup } from '@/components/ui/kbd'
+import { Spinner } from '@/components/ui/spinner'
+import { isApplePlatform } from '@/lib/platform'
 import { useResearchStore } from '@/stores/research'
 import { MAX_QUESTION_LENGTH } from '@/types/research'
 
@@ -29,6 +37,10 @@ const statusMessage = computed(() => {
 
 const isError = computed(() => store.status === 'invalid' || store.status === 'unreachable')
 
+const modifier = isApplePlatform()
+  ? { key: '⌘', spoken: 'Comando' }
+  : { key: 'Ctrl', spoken: 'Control' }
+
 // Enter adds a new line; Ctrl+Enter or Cmd+Enter submits.
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
@@ -36,36 +48,58 @@ function onKeydown(event: KeyboardEvent) {
     void store.submit()
   }
 }
+
+const field = ref<{ $el: HTMLTextAreaElement }>()
+
+defineExpose({ focus: () => field.value?.$el.focus() })
 </script>
 
 <template>
-  <form class="space-y-3" novalidate @submit.prevent="store.submit()">
-    <h2 class="font-heading text-xl font-semibold">Haz tu pregunta</h2>
-
-    <label for="research-question" class="block text-sm font-medium">
+  <form class="flex flex-col gap-2" novalidate @submit.prevent="store.submit()">
+    <label for="research-question" class="text-sm font-medium text-muted-foreground">
       Pregunta sobre el acceso a la vivienda en España
     </label>
-    <Textarea
-      id="research-question"
-      v-model="store.question"
-      rows="4"
-      :aria-invalid="store.status === 'invalid' ? 'true' : undefined"
-      :aria-describedby="store.status === 'invalid' ? 'research-status' : undefined"
-      @keydown="onKeydown"
-    />
 
-    <div class="flex flex-wrap items-center gap-3">
-      <Button type="submit" :disabled="!store.canSubmit" :aria-busy="store.isSubmitting">
-        Enviar
-      </Button>
-      <p
-        id="research-status"
-        aria-live="polite"
-        class="text-sm"
-        :class="isError ? 'text-destructive' : 'text-muted-foreground'"
-      >
-        {{ statusMessage }}
-      </p>
-    </div>
+    <InputGroup class="rounded-xl bg-card shadow-sm">
+      <InputGroupTextarea
+        id="research-question"
+        ref="field"
+        v-model="store.question"
+        rows="3"
+        placeholder="Por ejemplo: ¿cuánto ha subido el alquiler en mi ciudad?"
+        class="max-h-64 min-h-24 overflow-y-auto px-4 pt-3 text-base"
+        :aria-invalid="store.status === 'invalid' ? 'true' : undefined"
+        :aria-describedby="store.status === 'invalid' ? 'research-status' : undefined"
+        @keydown="onKeydown"
+      />
+      <InputGroupAddon align="block-end" class="px-3 pb-3">
+        <span class="sr-only">Para enviar, pulsa {{ modifier.spoken }} más Intro.</span>
+        <KbdGroup aria-hidden="true" data-testid="submit-shortcut">
+          <Kbd>{{ modifier.key }}</Kbd>
+          <Kbd>↵</Kbd>
+        </KbdGroup>
+        <InputGroupButton
+          type="submit"
+          variant="default"
+          size="icon-sm"
+          class="ml-auto rounded-full"
+          aria-label="Enviar"
+          :disabled="!store.canSubmit"
+          :aria-busy="store.isSubmitting"
+        >
+          <Spinner v-if="store.isSubmitting" />
+          <ArrowUpIcon v-else aria-hidden="true" />
+        </InputGroupButton>
+      </InputGroupAddon>
+    </InputGroup>
+
+    <p
+      id="research-status"
+      aria-live="polite"
+      class="min-h-5 text-sm"
+      :class="isError ? 'text-destructive' : 'text-muted-foreground'"
+    >
+      {{ statusMessage }}
+    </p>
   </form>
 </template>

@@ -1,2 +1,41 @@
-"""Tracing, logging, latency, and retrieval-quality instrumentation."""
+"""Logger and optional Langfuse tracing. The agent runs without either backend."""
 
+import logging
+from typing import Any
+
+from housing_access_agent.config import Settings
+
+LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
+
+
+# Client libraries whose DEBUG output would bury the agent's own debug lines.
+QUIET_LIBRARIES = ("httpcore", "openai", "langsmith", "urllib3")
+
+
+def configure_logging(settings: Settings) -> None:
+    logging.basicConfig(level=settings.log_level.upper(), format=LOG_FORMAT)
+    for name in QUIET_LIBRARIES:
+        logging.getLogger(name).setLevel(max(logging.INFO, logging.getLogger().level))
+
+
+def get_logger(name: str) -> logging.Logger:
+    return logging.getLogger(name)
+
+
+def langfuse_callbacks(settings: Settings) -> list[Any]:
+    """LangChain callbacks that send traces to Langfuse, or [] when not configured."""
+    public_key = settings.langfuse_public_key.get_secret_value()
+    secret_key = settings.langfuse_secret_key.get_secret_value()
+    if not (public_key and secret_key):
+        return []
+
+    logger = get_logger(__name__)
+    try:
+        from langfuse import Langfuse
+        from langfuse.langchain import CallbackHandler
+    except ImportError as error:
+        logger.warning("Langfuse tracing disabled: %s", error)
+        return []
+
+    Langfuse(public_key=public_key, secret_key=secret_key, host=settings.langfuse_host)
+    return [CallbackHandler(public_key=public_key)]

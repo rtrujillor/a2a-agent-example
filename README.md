@@ -11,8 +11,11 @@ cited, and state their limitations. The agent does not give personalized legal
 or financial advice, valuations, or forecasts. See [AGENTS.md](AGENTS.md) for
 the full scope, sourcing, and response rules.
 
-> **Status:** early scaffolding. The architecture is defined; the workflow,
-> tools, A2A server, and web client are not implemented yet.
+> **Status:** early implementation. The web client sends questions, and the
+> A2A server interprets and classifies them (scope, topic, location, period,
+> assumptions, clarifying questions). Planning, retrieval, validation, and
+> synthesis are not implemented yet, so in-scope requests end with a "research
+> not available yet" message.
 
 ## Architecture
 
@@ -98,7 +101,10 @@ docs/architecture/              # draw.io diagrams
 
 - Python 3.11+ (`.python-version` selects 3.12; `uv` recommended)
 - Node.js 22.18+ or 24.12+ and pnpm 11 (for the Vue.js client)
-- LM Studio with a model that supports tool calling or structured output
+- LM Studio with a model that supports structured output through a JSON-schema
+  response format. The agent reads the answer from `content`, as the OpenAI
+  API defines it. Some reasoning models return it in `reasoning_content`
+  instead. For those, set `MODEL_REASONING_EFFORT=none`.
 - Docker (for self-hosted Langfuse)
 - Google Programmable Search API key and search engine ID. Check that the
   Custom Search JSON API is still available to new projects before relying on it.
@@ -110,11 +116,20 @@ Copy `.env.example` to `.env` and fill in the values. Never commit `.env`.
 | Variable | Purpose |
 | --- | --- |
 | `MODEL_BASE_URL`, `MODEL_NAME`, `MODEL_API_KEY` | OpenAI-compatible model endpoint (LM Studio) |
+| `MODEL_REASONING_EFFORT` | Optional. Sent as `reasoning_effort` when set, for example `none` for reasoning models; not sent when empty |
 | `GOOGLE_SEARCH_API_KEY`, `GOOGLE_SEARCH_ENGINE_ID` | Google Programmable Search |
 | `A2A_HOST`, `A2A_PORT`, `A2A_AGENT_URL` | Agent bind address and public A2A URL |
 | `CORS_ALLOWED_ORIGINS` | Web client origins allowed to call the agent |
 | `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` | Tracing |
 | `MAX_*`, `*_TIMEOUT_SECONDS`, `HTTP_MAX_RETRIES` | Research limits, timeouts, retries |
+| `MAX_CLARIFICATION_ROUNDS` | Clarifying questions per task before the request is rejected (default 2) |
+
+`MODEL_NAME` is required. Langfuse tracing is used only when both Langfuse
+keys are set.
+
+Set `LOG_LEVEL=DEBUG` to see what the model returns for each classification in
+the server console. Those lines can echo parts of the user's question, so keep
+DEBUG for local debugging.
 
 The web client has its own `web/.env.example` with only `VITE_AGENT_URL`.
 
@@ -124,7 +139,9 @@ The web client has its own `web/.env.example` with only `VITE_AGENT_URL`.
 # Agent
 uv venv && source .venv/bin/activate
 uv pip install -e ".[dev]"
-pytest
+pytest                     # unit and in-process integration tests, no network
+housing-access-agent       # A2A server on http://127.0.0.1:8000
+                           # (same as: python -m housing_access_agent.server)
 
 # Web client
 cd web && pnpm install
@@ -132,8 +149,14 @@ pnpm dev             # http://localhost:5173
 pnpm test:unit
 ```
 
-The command to start the agent server will be documented once `server.py` is
-implemented.
+The agent card is served at `http://127.0.0.1:8000/.well-known/agent-card.json`.
+
+Tests marked `live` call the configured model and are skipped by default.
+Run them with LM Studio running and `.env` filled in:
+
+```bash
+pytest -m live
+```
 
 ## Example requests
 

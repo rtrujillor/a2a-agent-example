@@ -4,7 +4,7 @@ import operator
 from typing import Annotated, TypedDict
 
 from housing_access_agent.domain.enums import Outcome
-from housing_access_agent.domain.models import ClassifiedRequest
+from housing_access_agent.domain.models import ClassifiedRequest, ResearchPlan
 
 
 class ResearchState(TypedDict, total=False):
@@ -15,3 +15,7 @@ class ResearchState(TypedDict, total=False):
     clarification_rounds: int
     classification: ClassifiedRequest | None
     outcome: Outcome | None
+    plan: ResearchPlan | None
+    planner_iterations: int
+    # Searches already run for this request; nothing runs them yet.
+    searches_used: int

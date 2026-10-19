@@ -6,10 +6,11 @@ from housing_access_agent.a2a.messages import (
     Text,
     catalog_language,
     interpretation,
+    plan_summary,
     text,
 )
-from housing_access_agent.domain.enums import Assumption, Topic
-from housing_access_agent.domain.models import ModelClassification
+from housing_access_agent.domain.enums import Assumption, SourceKind, ToolName, Topic
+from housing_access_agent.domain.models import ModelClassification, PlanStep, ResearchPlan
 from housing_access_agent.workflow.classifier import apply_defaults
 from tests.fakes import classification
 
@@ -71,3 +72,49 @@ def test_interpretation_in_english_with_reframe():
 
 def test_interpretation_falls_back_to_spanish_labels():
     assert interpretation(_classified(language="ca")).startswith("Entendido:")
+
+
+def _step(sub_question, kind, sites=()):
+    return PlanStep(
+        sub_question=sub_question,
+        tool=ToolName.WEB_SEARCH,
+        query=f"consulta secreta {sub_question}",
+        query_language="es",
+        source_kind=kind,
+        sites=list(sites),
+    )
+
+
+def test_spanish_plan_summary():
+    plan = ResearchPlan(
+        iteration=0,
+        steps=[
+            _step("¿Cuál es el alquiler medio en Bilbao?", SourceKind.OFFICIAL, ["ine.es"]),
+            _step("¿Cómo ha evolucionado en Bizkaia?", SourceKind.OFFICIAL, ["mivau.gob.es"]),
+            _step("¿Qué se ha publicado recientemente?", SourceKind.MEDIA),
+            _step("¿Qué precios piden los portales?", SourceKind.MARKET),
+        ],
+    )
+
+    summary = plan_summary(plan, "es")
+
+    assert summary.splitlines() == [
+        "Plan de investigación (4 búsquedas):",
+        "- ¿Cuál es el alquiler medio en Bilbao? · fuentes oficiales",
+        "- ¿Cómo ha evolucionado en Bizkaia? · fuentes oficiales",
+        "- ¿Qué se ha publicado recientemente? · medios",
+        "- ¿Qué precios piden los portales? · portales (precios de oferta)",
+    ]
+    assert "consulta secreta" not in summary
+    assert "ine.es" not in summary and "mivau" not in summary
+
+
+def test_english_plan_summary_with_one_step():
+    plan = ResearchPlan(iteration=0, steps=[_step("What do portals ask?", SourceKind.MARKET)])
+
+    assert plan_summary(plan, "en") == "Research plan (1 search):\n- What do portals ask? · portals (asking prices)"
+
+
+def test_not_available_names_source_search():
+    assert text(Text.NOT_AVAILABLE).startswith("La búsqueda de fuentes aún no está disponible")
+    assert text(Text.NOT_AVAILABLE, "en").startswith("Source search is not available yet")

@@ -9,7 +9,7 @@ import pytest
 
 from housing_access_agent.config import Settings
 from housing_access_agent.server import create_app
-from tests.fakes import FakeStructuredChatModel, ambiguous, classification
+from tests.fakes import FakeStructuredChatModel, ambiguous, classification, media_step, plan, plan_step
 
 ORIGIN = "http://localhost:5173"
 FIXED_FAILURE = "No se ha podido procesar la solicitud. Inténtalo de nuevo más tarde."
@@ -99,7 +99,7 @@ async def test_cors_allows_only_the_configured_origin(path):
 
 
 async def test_in_scope_streams_progress_and_completes():
-    client, _ = _client([classification(location=None, period=None)])
+    client, _ = _client([classification(location=None, period=None), plan(plan_step(), media_step())])
     async with client:
         events = await _stream(client, _message("¿Cómo están los alquileres?"))
 
@@ -108,11 +108,17 @@ async def test_in_scope_streams_progress_and_completes():
         "TASK_STATE_SUBMITTED",
         "TASK_STATE_WORKING",
         "TASK_STATE_WORKING",
+        "TASK_STATE_WORKING",
         "TASK_STATE_COMPLETED",
     ]
     assert states[2][1].startswith("Entendido: alquileres · España · últimos datos disponibles.")
     assert "se considera España en su conjunto" in states[2][1]
-    assert "aún no está disponible" in states[3][1]
+    assert states[3][1].splitlines() == [
+        "Plan de investigación (2 búsquedas):",
+        "- ¿Cuál es el alquiler medio en Madrid? · fuentes oficiales",
+        "- ¿Qué se ha publicado recientemente? · medios",
+    ]
+    assert states[4][1].startswith("La búsqueda de fuentes aún no está disponible")
 
 
 async def test_out_of_scope_is_rejected():
@@ -123,17 +129,22 @@ async def test_out_of_scope_is_rejected():
     state, text = _states(events)[-1]
     assert state == "TASK_STATE_REJECTED"
     assert text.startswith("No es una pregunta sobre vivienda.")
+    assert not any(text.startswith("Plan de investigación") for _, text in _states(events))
 
 
 async def test_ambiguous_then_reply_on_the_same_task_completes():
-    client, model = _client([ambiguous(), classification(location={"name": "Bilbao", "level": "municipality"}, period=None)])
+    client, model = _client(
+        [ambiguous(), classification(location={"name": "Bilbao", "level": "municipality"}, period=None), plan()]
+    )
     async with client:
         first = await _stream(client, _message("¿Y los precios?"))
         task_id, context_id = _ids(first)
         second = await _stream(client, _message("Alquiler en Bilbao", task_id, context_id))
 
     assert _states(first)[-1] == ("TASK_STATE_INPUT_REQUIRED", ambiguous()["clarifying_question"])
+    assert not any(text.startswith("Plan de investigación") for _, text in _states(first))
     assert _states(second)[-1][0] == "TASK_STATE_COMPLETED"
+    assert sum(text.startswith("Plan de investigación") for _, text in _states(second)) == 1
     assert any("Bilbao (municipio)" in text for _, text in _states(second))
     reply_prompt = model.calls[1][1].content
     assert '<turn n="1">¿Y los precios?</turn>' in reply_prompt
@@ -154,7 +165,7 @@ async def test_clarification_limit_rejects():
 
 
 async def test_empty_identifiers_start_separate_tasks():
-    client, model = _client([classification(), classification()])
+    client, model = _client([classification(), plan(), classification(), plan()])
     async with client:
         first = await _stream(client, _message("Alquileres en Madrid"))
         second = await _stream(client, _message("Alquileres en Sevilla"))
@@ -163,7 +174,7 @@ async def test_empty_identifiers_start_separate_tasks():
     assert all(first_ids) and all(second_ids)
     assert first_ids[0] != second_ids[0]
     assert first_ids[1] != second_ids[1]
-    assert "Madrid" not in model.calls[1][1].content
+    assert "Madrid" not in model.calls[2][1].content
 
 
 @pytest.mark.parametrize(
@@ -193,6 +204,17 @@ async def test_model_error_fails_without_detail():
     state, text = _states(events)[-1]
     assert state == "TASK_STATE_FAILED"
     assert text == FIXED_FAILURE
+
+
+async def test_invalid_plan_on_every_attempt_fails():
+    client, _ = _client([classification(), plan(media_step())], http_max_retries=0)
+    async with client:
+        events = await _stream(client, _message("Alquileres en Madrid"))
+
+    states = _states(events)
+    assert states[-1] == ("TASK_STATE_FAILED", FIXED_FAILURE)
+    assert states[-2][1].startswith("Entendido")
+    assert not any(text.startswith("Plan de investigación") for _, text in states)
 
 
 class SlowModel(FakeStructuredChatModel):

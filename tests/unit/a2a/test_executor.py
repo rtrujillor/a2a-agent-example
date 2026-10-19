@@ -9,11 +9,13 @@ from langgraph.types import Overwrite
 
 from housing_access_agent.a2a.executor import HousingAgentExecutor
 from housing_access_agent.config import Settings
-from housing_access_agent.domain.enums import Outcome
-from housing_access_agent.domain.errors import ClassificationError, ModelUnavailableError
-from housing_access_agent.domain.models import ModelClassification
+from housing_access_agent.domain.enums import Outcome, Topic
+from housing_access_agent.domain.errors import ClassificationError, ModelUnavailableError, PlanningError
+from housing_access_agent.domain.models import ModelClassification, ModelPlan
+from housing_access_agent.tools.catalog import DEFAULT_CATALOG
 from housing_access_agent.workflow.classifier import apply_defaults
-from tests.fakes import ambiguous, classification
+from housing_access_agent.workflow.planner import enforce_plan
+from tests.fakes import ambiguous, classification, media_step, plan, plan_step
 
 QUESTION = "¿Cómo han evolucionado los alquileres en Madrid desde 2020?"
 
@@ -27,8 +29,11 @@ class RecordingQueue:
 
 
 class StubGraph:
-    def __init__(self, result=None, error=None, delay=0.0):
-        self.result, self.error, self.delay = result, error, delay
+    """Yields the given states in order, then raises the error if any."""
+
+    def __init__(self, result=None, error=None, delay=0.0, states=None):
+        self.states = states if states is not None else ([result] if result is not None else [])
+        self.error, self.delay = error, delay
         self.inputs, self.configs = [], []
 
     async def astream(self, graph_input, config, *, stream_mode):
@@ -36,14 +41,23 @@ class StubGraph:
         self.configs.append(config)
         if self.delay:
             await asyncio.sleep(self.delay)
+        for state in self.states:
+            yield state
         if self.error:
             raise self.error
-        yield self.result
+
+
+def _plan(*steps):
+    proposed = ModelPlan.model_validate(plan(*steps) if steps else plan(plan_step(), media_step()))
+    return enforce_plan(proposed, Topic.RENTS, 4, DEFAULT_CATALOG)
 
 
 def _state(outcome, **payload):
     data = payload or classification()
-    return {"outcome": outcome, "classification": apply_defaults(ModelClassification.model_validate(data))}
+    state = {"outcome": outcome, "classification": apply_defaults(ModelClassification.model_validate(data))}
+    if outcome is Outcome.IN_SCOPE:
+        state["plan"] = _plan()
+    return state
 
 
 def _context(parts=None, task=None):
@@ -83,8 +97,10 @@ async def test_in_scope_reports_interpretation_then_completes():
     assert states[0] == (TaskState.TASK_STATE_WORKING, "")
     assert states[1][0] == TaskState.TASK_STATE_WORKING
     assert states[1][1].startswith("Entendido: alquileres · Madrid")
-    assert states[2][0] == TaskState.TASK_STATE_COMPLETED
-    assert "aún no está disponible" in states[2][1]
+    assert states[2][0] == TaskState.TASK_STATE_WORKING
+    assert states[2][1].startswith("Plan de investigación (2 búsquedas):")
+    assert states[3][0] == TaskState.TASK_STATE_COMPLETED
+    assert "aún no está disponible" in states[3][1]
 
 
 async def test_english_request_gets_english_texts():
@@ -92,7 +108,8 @@ async def test_english_request_gets_english_texts():
 
     states = _statuses(events)
     assert states[1][1].startswith("Understood: rents")
-    assert "not available yet" in states[2][1]
+    assert states[2][1].startswith("Research plan (2 searches):")
+    assert "not available yet" in states[3][1]
 
 
 async def test_needs_clarification_requires_input_with_question():
@@ -166,13 +183,23 @@ async def test_continuation_appends_the_reply():
     events = await _run(graph, _context(parts=[Part(text="Alquiler en Bilbao")], task=task))
 
     assert not any(isinstance(e, Task) for e in events)
-    assert graph.inputs[0] == {"user_turns": ["Alquiler en Bilbao"]}
+    assert graph.inputs[0] == {
+        "user_turns": ["Alquiler en Bilbao"],
+        "plan": None,
+        "planner_iterations": 0,
+        "searches_used": 0,
+    }
     assert graph.configs[0]["configurable"]["thread_id"] == "c1"
 
 
 @pytest.mark.parametrize(
     "error",
-    [ClassificationError("bad output"), ModelUnavailableError("APIConnectionError"), RuntimeError("Traceback secret")],
+    [
+        ClassificationError("bad output"),
+        PlanningError("no plan"),
+        ModelUnavailableError("APIConnectionError"),
+        RuntimeError("Traceback secret"),
+    ],
 )
 async def test_errors_fail_with_fixed_text(error, caplog):
     caplog.set_level(logging.INFO)
@@ -208,3 +235,41 @@ def test_executor_does_not_import_model_or_tools():
     source = open(module.__file__, encoding="utf-8").read()
     for name in ("langchain_openai", "openai", "httpx", "housing_access_agent.tools", "housing_access_agent.workflow"):
         assert name not in source
+
+
+async def test_interpretation_is_sent_before_planning_runs():
+    classified = _state(Outcome.IN_SCOPE)
+    after_classify = {k: v for k, v in classified.items() if k != "plan"}
+    events = await _run(StubGraph(states=[{}, after_classify, classified]))
+
+    states = _statuses(events)
+    assert [state for state, _ in states] == [TaskState.TASK_STATE_WORKING] * 3 + [TaskState.TASK_STATE_COMPLETED]
+    assert states[1][1].startswith("Entendido")
+    assert states[2][1].startswith("Plan de investigación")
+
+
+async def test_planning_failure_after_interpretation_has_no_plan_update():
+    classified = _state(Outcome.IN_SCOPE)
+    after_classify = {k: v for k, v in classified.items() if k != "plan"}
+    events = await _run(StubGraph(states=[after_classify], error=PlanningError("no plan")))
+
+    states = _statuses(events)
+    assert states[1][1].startswith("Entendido")
+    assert not any(message.startswith("Plan de investigación") for _, message in states)
+    assert states[-1] == (TaskState.TASK_STATE_FAILED, "No se ha podido procesar la solicitud. Inténtalo de nuevo más tarde.")
+
+
+async def test_in_scope_without_plan_fails():
+    state = _state(Outcome.IN_SCOPE)
+    del state["plan"]
+    events = await _run(StubGraph(state))
+
+    assert _statuses(events)[-1][0] == TaskState.TASK_STATE_FAILED
+
+
+async def test_no_plan_update_for_ambiguous_request_with_stale_plan():
+    # A checkpointed plan from an earlier round must not be reported.
+    stale = _state(Outcome.NEEDS_CLARIFICATION, **ambiguous()) | {"plan": _plan()}
+    events = await _run(StubGraph(stale))
+
+    assert not any("Plan de investigación" in message for _, message in _statuses(events))

@@ -17,6 +17,7 @@ from housing_access_agent.config import Settings
 from housing_access_agent.graph import build_graph
 from housing_access_agent.observability import configure_logging, langfuse_callbacks
 from housing_access_agent.workflow.classifier import make_classifier
+from housing_access_agent.workflow.planner import make_planner
 
 # LM Studio ignores the key, but the OpenAI client refuses an empty one.
 PLACEHOLDER_API_KEY = "not-needed"
@@ -38,7 +39,7 @@ def build_chat_model(settings: Settings) -> ChatOpenAI:
 
 
 def create_app(settings: Settings, model: BaseChatModel) -> Starlette:
-    graph = build_graph(make_classifier(model, settings), InMemorySaver())
+    graph = build_graph(make_classifier(model, settings), make_planner(model, settings), InMemorySaver())
     executor = HousingAgentExecutor(graph, settings, callbacks=langfuse_callbacks(settings))
     card = build_agent_card(settings)
     handler = DefaultRequestHandler(agent_executor=executor, task_store=InMemoryTaskStore(), agent_card=card)

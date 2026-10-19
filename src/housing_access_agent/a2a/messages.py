@@ -1,9 +1,9 @@
-"""Fixed user-facing texts in Spanish and English, and the interpretation summary."""
+"""Fixed user-facing texts in Spanish and English, and the interpretation and plan summaries."""
 
 from enum import StrEnum
 
-from housing_access_agent.domain.enums import Assumption, LocationLevel, Topic
-from housing_access_agent.domain.models import ClassifiedRequest
+from housing_access_agent.domain.enums import Assumption, LocationLevel, SourceKind, Topic
+from housing_access_agent.domain.models import ClassifiedRequest, ResearchPlan
 
 
 class Text(StrEnum):
@@ -19,6 +19,9 @@ class Text(StrEnum):
     ASSUMPTIONS = "assumptions"
     LATEST_DATA = "latest_data"
     SPAIN = "spain"
+    PLAN = "plan"
+    SEARCH = "search"
+    SEARCHES = "searches"
 
 
 _TEXTS: dict[str, dict[Text, str]] = {
@@ -29,7 +32,8 @@ _TEXTS: dict[str, dict[Text, str]] = {
         ),
         Text.INTAKE_UNSUPPORTED: "Solo se acepta una pregunta en texto, en un único mensaje.",
         Text.NOT_AVAILABLE: (
-            "La investigación aún no está disponible: por ahora el agente solo interpreta la pregunta."
+            "La búsqueda de fuentes aún no está disponible: por ahora el agente interpreta la "
+            "pregunta y planifica la investigación."
         ),
         Text.SCOPE_HINT: (
             "Este agente investiga el acceso a la vivienda en España: precios, alquileres, salarios, "
@@ -46,12 +50,18 @@ _TEXTS: dict[str, dict[Text, str]] = {
         Text.ASSUMPTIONS: "Supuestos",
         Text.LATEST_DATA: "últimos datos disponibles",
         Text.SPAIN: "España",
+        Text.PLAN: "Plan de investigación",
+        Text.SEARCH: "búsqueda",
+        Text.SEARCHES: "búsquedas",
     },
     "en": {
         Text.INTAKE_EMPTY: "Write a question about housing in Spain.",
         Text.INTAKE_TOO_LONG: "The question is longer than 2,000 characters. Shorten it and try again.",
         Text.INTAKE_UNSUPPORTED: "Only one text question is accepted, in a single message.",
-        Text.NOT_AVAILABLE: "Research is not available yet: for now the agent only interprets the question.",
+        Text.NOT_AVAILABLE: (
+            "Source search is not available yet: for now the agent interprets the question "
+            "and plans the research."
+        ),
         Text.SCOPE_HINT: (
             "This agent researches housing access in Spain: prices, rents, wages, supply, public "
             "housing, tenant rights, tourism, investment, vacant homes, displacement, legislation, "
@@ -67,6 +77,9 @@ _TEXTS: dict[str, dict[Text, str]] = {
         Text.ASSUMPTIONS: "Assumptions",
         Text.LATEST_DATA: "latest available data",
         Text.SPAIN: "Spain",
+        Text.PLAN: "Research plan",
+        Text.SEARCH: "search",
+        Text.SEARCHES: "searches",
     },
 }
 
@@ -139,6 +152,20 @@ LEVEL_LABELS: dict[str, dict[LocationLevel, str]] = {
 }
 
 
+SOURCE_KIND_LABELS: dict[str, dict[SourceKind, str]] = {
+    "es": {
+        SourceKind.OFFICIAL: "fuentes oficiales",
+        SourceKind.MEDIA: "medios",
+        SourceKind.MARKET: "portales (precios de oferta)",
+    },
+    "en": {
+        SourceKind.OFFICIAL: "official sources",
+        SourceKind.MEDIA: "media",
+        SourceKind.MARKET: "portals (asking prices)",
+    },
+}
+
+
 def catalog_language(language: str | None) -> str:
     """English for English requests, Spanish for everything else."""
     primary = (language or "").strip().lower().replace("_", "-").split("-")[0]
@@ -173,4 +200,14 @@ def interpretation(classified: ClassifiedRequest) -> str:
     if classified.assumptions:
         labels = "; ".join(ASSUMPTION_LABELS[lang][a] for a in classified.assumptions)
         lines.append(f"{_TEXTS[lang][Text.ASSUMPTIONS]}: {labels}.")
+    return "\n".join(lines)
+
+
+def plan_summary(plan: ResearchPlan, language: str | None) -> str:
+    """The plan's sub-questions and source kinds, without queries or domains."""
+    lang = catalog_language(language)
+    count = len(plan.steps)
+    noun = _TEXTS[lang][Text.SEARCH if count == 1 else Text.SEARCHES]
+    lines = [f"{_TEXTS[lang][Text.PLAN]} ({count} {noun}):"]
+    lines += [f"- {step.sub_question} · {SOURCE_KIND_LABELS[lang][step.source_kind]}" for step in plan.steps]
     return "\n".join(lines)

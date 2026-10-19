@@ -1,8 +1,8 @@
 import pytest
 from pydantic import ValidationError
 
-from housing_access_agent.domain.enums import LocationLevel, Topic, Verdict
-from housing_access_agent.domain.models import ModelClassification
+from housing_access_agent.domain.enums import LocationLevel, SourceKind, Topic, Verdict
+from housing_access_agent.domain.models import ModelClassification, ModelPlan, ModelPlanStep
 
 
 def _payload(**overrides):
@@ -71,3 +71,39 @@ def test_domain_has_no_io_imports():
     source = open(models.__file__, encoding="utf-8").read()
     for module in ("httpx", "openai", "langchain", "langgraph", "a2a"):
         assert f"import {module}" not in source and f"from {module}" not in source
+
+
+def _step(**overrides):
+    step = {
+        "sub_question": "¿Cuál es el alquiler medio en Madrid?",
+        "tool": "web_search",
+        "query": "índice de precios de alquiler Madrid",
+        "query_language": "es",
+        "source_kind": "official",
+        "freshness": None,
+        "sites": ["ine.es"],
+    }
+    step.update(overrides)
+    return step
+
+
+def test_parses_valid_plan():
+    plan = ModelPlan.model_validate({"steps": [_step()]})
+
+    assert plan.steps[0].source_kind is SourceKind.OFFICIAL
+
+
+def test_plan_step_accepts_unknown_tool():
+    step = ModelPlanStep.model_validate(_step(tool="ine_api"))
+
+    assert step.tool == "ine_api"
+
+
+def test_plan_step_extra_fields_are_invalid():
+    with pytest.raises(ValidationError):
+        ModelPlanStep.model_validate(_step(max_searches=20))
+
+
+def test_plan_step_invalid_freshness_is_invalid():
+    with pytest.raises(ValidationError):
+        ModelPlanStep.model_validate(_step(freshness="yesterday"))

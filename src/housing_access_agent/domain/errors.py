@@ -7,3 +7,7 @@ class ClassificationError(Exception):
 
 class ModelUnavailableError(Exception):
     """The language model could not be reached or returned a provider error."""
+
+
+class PlanningError(Exception):
+    """No valid research plan resulted after the bounded retries."""

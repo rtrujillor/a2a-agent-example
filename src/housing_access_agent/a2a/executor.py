@@ -11,11 +11,11 @@ from a2a.server.tasks import TaskUpdater
 from a2a.types import Message, TaskState
 from langgraph.types import Overwrite
 
-from housing_access_agent.a2a.messages import Text, interpretation, text
+from housing_access_agent.a2a.messages import Text, interpretation, plan_summary, text
 from housing_access_agent.config import Settings
 from housing_access_agent.domain.enums import Outcome
-from housing_access_agent.domain.errors import ClassificationError, ModelUnavailableError
-from housing_access_agent.domain.models import ClassifiedRequest
+from housing_access_agent.domain.errors import ClassificationError, ModelUnavailableError, PlanningError
+from housing_access_agent.domain.models import ClassifiedRequest, ResearchPlan
 
 logger = logging.getLogger(__name__)
 
@@ -73,24 +73,45 @@ class HousingAgentExecutor(AgentExecutor):
         await updater.start_work()
 
         continuing = current is not None and current.status.state == TaskState.TASK_STATE_INPUT_REQUIRED
+        # A plan from an earlier round in this context must never be reported again.
+        research_reset: dict[str, Any] = {"plan": None, "planner_iterations": 0, "searches_used": 0}
         graph_input: dict[str, Any] = (
-            {"user_turns": [question]}
+            {"user_turns": [question], **research_reset}
             if continuing
             else {
                 "user_turns": Overwrite([question]),
                 "clarification_rounds": 0,
                 "classification": None,
                 "outcome": None,
+                **research_reset,
             }
         )
         config = {"configurable": {"thread_id": context_id}, "callbacks": self._callbacks}
+
+        interpreted = planned = False
+
+        async def report_progress(state: dict[str, Any]) -> None:
+            """Send each step once, as soon as the streamed state first holds it."""
+            nonlocal interpreted, planned
+            classified: ClassifiedRequest | None = state.get("classification")
+            if classified is None or state.get("outcome") is not Outcome.IN_SCOPE:
+                return
+            if not interpreted:
+                interpreted = True
+                await updater.update_status(TaskState.TASK_STATE_WORKING, say(interpretation(classified)))
+            plan: ResearchPlan | None = state.get("plan")
+            if plan is not None and not planned:
+                planned = True
+                await updater.update_status(
+                    TaskState.TASK_STATE_WORKING, say(plan_summary(plan, classified.language))
+                )
 
         try:
             async with asyncio.timeout(self._settings.request_timeout_seconds):
                 state: dict[str, Any] = {}
                 async for state in self._graph.astream(graph_input, config, stream_mode="values"):
-                    pass
-        except (TimeoutError, ClassificationError, ModelUnavailableError) as error:
+                    await report_progress(state)
+        except (TimeoutError, ClassificationError, ModelUnavailableError, PlanningError) as error:
             logger.warning("Task %s failed: %s", task_id, type(error).__name__)
             await updater.failed(say(text(Text.FAILURE)))
             return
@@ -109,7 +130,10 @@ class HousingAgentExecutor(AgentExecutor):
         logger.info("Task %s outcome: %s", task_id, outcome.value)
         lang = classified.language
         if outcome is Outcome.IN_SCOPE:
-            await updater.update_status(TaskState.TASK_STATE_WORKING, say(interpretation(classified)))
+            if not planned:
+                logger.error("Task %s ended in scope without a plan", task_id)
+                await updater.failed(say(text(Text.FAILURE, lang)))
+                return
             await updater.complete(say(text(Text.NOT_AVAILABLE, lang)))
         elif outcome is Outcome.NEEDS_CLARIFICATION:
             await updater.requires_input(say(classified.clarifying_question or text(Text.REPHRASE, lang)))

@@ -41,6 +41,36 @@ def ambiguous(**overrides: Any) -> dict[str, Any]:
     return classification(**(fields | overrides))
 
 
+def plan_step(**overrides: Any) -> dict[str, Any]:
+    """A valid official model plan step payload, with overrides."""
+    step: dict[str, Any] = {
+        "sub_question": "¿Cuál es el alquiler medio en Madrid?",
+        "tool": "web_search",
+        "query": "índice de precios de vivienda en alquiler Madrid",
+        "query_language": "es",
+        "source_kind": "official",
+        "freshness": None,
+        "sites": ["ine.es"],
+    }
+    step.update(overrides)
+    return step
+
+
+def media_step(**overrides: Any) -> dict[str, Any]:
+    fields: dict[str, Any] = {
+        "sub_question": "¿Qué se ha publicado recientemente?",
+        "query": "alquiler Madrid noticias",
+        "source_kind": "media",
+        "sites": [],
+    }
+    return plan_step(**(fields | overrides))
+
+
+def plan(*steps: dict[str, Any]) -> dict[str, Any]:
+    """A model plan payload; one official step by default."""
+    return {"steps": list(steps) if steps else [plan_step()]}
+
+
 class FakeStructuredChatModel(BaseChatModel):
     """Chat model whose structured output returns scripted results in order.
 

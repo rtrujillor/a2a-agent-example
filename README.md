@@ -13,9 +13,10 @@ the full scope, sourcing, and response rules.
 
 > **Status:** early implementation. The web client sends questions, and the
 > A2A server interprets and classifies them (scope, topic, location, period,
-> assumptions, clarifying questions). Planning, retrieval, validation, and
-> synthesis are not implemented yet, so in-scope requests end with a "research
-> not available yet" message.
+> assumptions, clarifying questions), then plans bounded research for in-scope
+> requests and shows the plan as progress. Retrieval, validation, and
+> synthesis are not implemented yet, so in-scope requests end with a "source
+> search not available yet" message.
 
 ## Architecture
 
@@ -123,12 +124,13 @@ Copy `.env.example` to `.env` and fill in the values. Never commit `.env`.
 | `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` | Tracing |
 | `MAX_*`, `*_TIMEOUT_SECONDS`, `HTTP_MAX_RETRIES` | Research limits, timeouts, retries |
 | `MAX_CLARIFICATION_ROUNDS` | Clarifying questions per task before the request is rejected (default 2) |
+| `MAX_SEARCHES_PER_REQUEST`, `MAX_PLANNER_ITERATIONS` | Searches per request (default 6) and planner iterations (default 2). The first plan may use `MAX_SEARCHES_PER_REQUEST - MAX_PLANNER_ITERATIONS` searches (at least 1), keeping one for each later replan |
 
 `MODEL_NAME` is required. Langfuse tracing is used only when both Langfuse
 keys are set.
 
-Set `LOG_LEVEL=DEBUG` to see what the model returns for each classification in
-the server console. Those lines can echo parts of the user's question, so keep
+Set `LOG_LEVEL=DEBUG` to see what the model returns for each classification and
+plan in the server console. Those lines can echo parts of the user's question, so keep
 DEBUG for local debugging.
 
 The web client has its own `web/.env.example` with only `VITE_AGENT_URL`.

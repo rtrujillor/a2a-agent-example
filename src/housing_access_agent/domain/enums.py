@@ -64,3 +64,34 @@ class Outcome(StrEnum):
     NEEDS_CLARIFICATION = "needs_clarification"
     OUT_OF_SCOPE = "out_of_scope"
     CLARIFICATION_EXHAUSTED = "clarification_exhausted"
+
+
+class ToolName(StrEnum):
+    """Tools a research plan step may name."""
+
+    WEB_SEARCH = "web_search"
+
+
+class SourceKind(StrEnum):
+    """Kind of source a plan step expects to find."""
+
+    OFFICIAL = "official"
+    MEDIA = "media"
+    MARKET = "market"
+
+
+class SourceType(StrEnum):
+    """Kind of source a retrieved result comes from, set from its domain."""
+
+    OFFICIAL = "official"
+    MEDIA = "media"
+    MARKET = "market"
+    OTHER = "other"
+
+
+class Freshness(StrEnum):
+    """How recent search results must be."""
+
+    PAST_WEEK = "past_week"
+    PAST_MONTH = "past_month"
+    PAST_YEAR = "past_year"

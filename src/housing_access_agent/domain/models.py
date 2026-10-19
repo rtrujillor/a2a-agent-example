@@ -4,8 +4,11 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from housing_access_agent.domain.enums import (
     Assumption,
+    Freshness,
     LocationLevel,
     ResearchDepth,
+    SourceKind,
+    ToolName,
     Topic,
     Verdict,
 )
@@ -73,3 +76,45 @@ class ClassifiedRequest(BaseModel):
     clarifying_question: str | None = None
     reframed_question: str | None = None
     assumptions: list[Assumption] = Field(default_factory=list)
+
+
+class ModelPlanStep(BaseModel):
+    """One step the language model proposes. The planner checks it in code."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    sub_question: str = Field(description="What this step answers, in the user's language.")
+    # A plain string: an unknown tool drops this step instead of failing the whole plan.
+    tool: str = Field(description="Tool name from the allowed tools.")
+    query: str = Field(description="Search query, without the user's personal circumstances.")
+    query_language: str = Field(min_length=2, description="Language tag of the query, e.g. es.")
+    source_kind: SourceKind
+    freshness: Freshness | None = Field(description="How recent results must be, or null.")
+    sites: list[str] = Field(description="Domains to restrict the search to, from the allowed domains only.")
+
+
+class ModelPlan(BaseModel):
+    """The research plan the language model proposes."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    steps: list[ModelPlanStep]
+
+
+class PlanStep(BaseModel):
+    """A plan step after the planner enforced the catalog and allowlists."""
+
+    sub_question: str
+    tool: ToolName
+    query: str = Field(min_length=1)
+    query_language: str
+    source_kind: SourceKind
+    freshness: Freshness | None = None
+    sites: list[str] = Field(default_factory=list)
+
+
+class ResearchPlan(BaseModel):
+    """A bounded research plan for one planner iteration."""
+
+    steps: list[PlanStep] = Field(min_length=1)
+    iteration: int = Field(ge=0)

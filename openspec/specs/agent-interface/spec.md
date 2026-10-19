@@ -77,7 +77,11 @@ before the task reaches its final or interrupted state.
 
 #### Scenario: Progress before the outcome
 - **WHEN** a client streams a valid in-scope question
-- **THEN** it receives the task, then a working update, then the interpretation update, and finally the completed state
+- **THEN** it receives the task, then a working update, then the interpretation update, then the plan update, and finally the completed state
+
+#### Scenario: No plan update without a plan
+- **WHEN** a client streams a question that is classified as ambiguous or out of scope
+- **THEN** it receives no plan update before the task's interrupted or final state
 
 ### Requirement: Outcome to task state
 The agent SHALL map each workflow outcome to one A2A task state. An
@@ -94,8 +98,8 @@ agent message in the request's language that explains the outcome.
 - **THEN** the task becomes input-required with a message holding one clarifying question
 
 #### Scenario: In scope, before research exists
-- **WHEN** the request is classified as in scope
-- **THEN** the agent reports a working update that states its interpretation and assumptions, then completes the task with a message saying research is not available yet
+- **WHEN** the request is classified as in scope and a valid plan is built
+- **THEN** the agent reports a working update that states its interpretation and assumptions, then a working update with the plan, then completes the task with a message saying source search is not available yet
 
 ### Requirement: Continuing an input-required task
 When a message arrives for a task in the input-required state, with the same
@@ -113,11 +117,11 @@ across different context identifiers.
 
 ### Requirement: Failures without technical detail
 When the language model is unreachable, times out, or returns output that
-can't be validated after the bounded retries, or when the request exceeds the
-configured total request time, the agent SHALL end the task as failed. The
-failure message SHALL be fixed, in the request's language or else in Spanish.
-It SHALL NOT include stack traces, exception text, provider responses,
-hostnames, or keys.
+can't be validated after the bounded retries, including a research plan with
+no valid steps, or when the request exceeds the configured total request
+time, the agent SHALL end the task as failed. The failure message SHALL be
+fixed, in the request's language or else in Spanish. It SHALL NOT include
+stack traces, exception text, provider responses, hostnames, or keys.
 
 #### Scenario: Model unreachable
 - **WHEN** the model endpoint refuses connections
@@ -126,6 +130,10 @@ hostnames, or keys.
 #### Scenario: Request time exceeded
 - **WHEN** processing exceeds the configured request timeout
 - **THEN** the task ends as failed with the fixed failure message
+
+#### Scenario: No valid plan
+- **WHEN** the request is in scope but planning yields no valid plan after the bounded retries
+- **THEN** the task ends as failed with the fixed failure message, after the interpretation update and without a plan update
 
 #### Scenario: Error is logged for operators
 - **WHEN** a task fails

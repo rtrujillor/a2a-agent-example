@@ -11,11 +11,11 @@ from a2a.server.tasks import TaskUpdater
 from a2a.types import Message, TaskState
 from langgraph.types import Overwrite
 
-from housing_access_agent.a2a.messages import Text, interpretation, plan_summary, text
+from housing_access_agent.a2a.messages import Text, interpretation, plan_summary, search_update, sources_summary, text
 from housing_access_agent.config import Settings
 from housing_access_agent.domain.enums import Outcome
 from housing_access_agent.domain.errors import ClassificationError, ModelUnavailableError, PlanningError
-from housing_access_agent.domain.models import ClassifiedRequest, ResearchPlan
+from housing_access_agent.domain.models import ClassifiedRequest, Evidence, ResearchPlan, SearchGap
 
 logger = logging.getLogger(__name__)
 
@@ -73,8 +73,15 @@ class HousingAgentExecutor(AgentExecutor):
         await updater.start_work()
 
         continuing = current is not None and current.status.state == TaskState.TASK_STATE_INPUT_REQUIRED
-        # A plan from an earlier round in this context must never be reported again.
-        research_reset: dict[str, Any] = {"plan": None, "planner_iterations": 0, "searches_used": 0}
+        # A plan or search from an earlier round in this context must never be reported again.
+        research_reset: dict[str, Any] = {
+            "plan": None,
+            "planner_iterations": 0,
+            "searches_used": 0,
+            "research_step": 0,
+            "evidence": [],
+            "gaps": [],
+        }
         graph_input: dict[str, Any] = (
             {"user_turns": [question], **research_reset}
             if continuing
@@ -89,10 +96,11 @@ class HousingAgentExecutor(AgentExecutor):
         config = {"configurable": {"thread_id": context_id}, "callbacks": self._callbacks}
 
         interpreted = planned = False
+        reported_steps = 0
 
         async def report_progress(state: dict[str, Any]) -> None:
             """Send each step once, as soon as the streamed state first holds it."""
-            nonlocal interpreted, planned
+            nonlocal interpreted, planned, reported_steps
             classified: ClassifiedRequest | None = state.get("classification")
             if classified is None or state.get("outcome") is not Outcome.IN_SCOPE:
                 return
@@ -105,6 +113,16 @@ class HousingAgentExecutor(AgentExecutor):
                 await updater.update_status(
                     TaskState.TASK_STATE_WORKING, say(plan_summary(plan, classified.language))
                 )
+            if plan is None or not planned:
+                return
+            evidence: list[Evidence] = state.get("evidence") or []
+            gaps: list[SearchGap] = state.get("gaps") or []
+            done = min(state.get("research_step", 0), len(plan.steps))
+            for step in range(reported_steps, done):
+                await updater.update_status(
+                    TaskState.TASK_STATE_WORKING, say(search_update(plan, step, evidence, gaps, classified.language))
+                )
+            reported_steps = max(reported_steps, done)
 
         try:
             async with asyncio.timeout(self._settings.request_timeout_seconds):
@@ -134,7 +152,12 @@ class HousingAgentExecutor(AgentExecutor):
                 logger.error("Task %s ended in scope without a plan", task_id)
                 await updater.failed(say(text(Text.FAILURE, lang)))
                 return
-            await updater.complete(say(text(Text.NOT_AVAILABLE, lang)))
+            evidence = state.get("evidence") or []
+            if not evidence:
+                logger.warning("Task %s failed: no search kept a source", task_id)
+                await updater.failed(say(text(Text.FAILURE, lang)))
+                return
+            await updater.complete(say(sources_summary(evidence, state.get("gaps") or [], lang)))
         elif outcome is Outcome.NEEDS_CLARIFICATION:
             await updater.requires_input(say(classified.clarifying_question or text(Text.REPHRASE, lang)))
         elif outcome is Outcome.OUT_OF_SCOPE:

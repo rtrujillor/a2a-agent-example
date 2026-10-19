@@ -41,7 +41,7 @@ changes.
 | Workflow | LangGraph `StateGraph`, compiled once at startup |
 | Short-term memory | LangGraph `InMemorySaver`; thread ID = A2A `contextId` |
 | Language model | LM Studio through its OpenAI-compatible API |
-| Web search | Google Programmable Search (Custom Search JSON API) |
+| Web search | Brave Search API |
 | Telemetry | Langfuse (self-hosted) + Python `logging` |
 | Configuration | Environment variables from a git-ignored `.env` |
 
@@ -154,7 +154,7 @@ attendance estimates.
 
 ## Security
 
-- **Secrets:** API keys (Google, Langfuse, model) live only in the agent
+- **Secrets:** API keys (Brave Search, Langfuse, model) live only in the agent
   server's environment. Never put them in the Vue bundle, `VITE_*` variables,
   logs, traces, agent card, or responses. Never commit `.env`; keep
   `.env.example` current with empty values.

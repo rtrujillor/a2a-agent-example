@@ -4,7 +4,7 @@ import operator
 from typing import Annotated, TypedDict
 
 from housing_access_agent.domain.enums import Outcome
-from housing_access_agent.domain.models import ClassifiedRequest, ResearchPlan
+from housing_access_agent.domain.models import ClassifiedRequest, Evidence, ResearchPlan, SearchGap
 
 
 class ResearchState(TypedDict, total=False):
@@ -17,5 +17,9 @@ class ResearchState(TypedDict, total=False):
     outcome: Outcome | None
     plan: ResearchPlan | None
     planner_iterations: int
-    # Searches already run for this request; nothing runs them yet.
+    # Searches already run for this request, across planner iterations.
     searches_used: int
+    # Index of the next plan step to research.
+    research_step: int
+    evidence: list[Evidence]
+    gaps: list[SearchGap]

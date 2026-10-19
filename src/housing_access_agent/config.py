@@ -18,9 +18,8 @@ class Settings(BaseSettings):
     # Sent as `reasoning_effort` only when set, e.g. "none" for reasoning models.
     model_reasoning_effort: str = ""
 
-    # Google Programmable Search (not used by the classifier yet)
-    google_search_api_key: SecretStr = SecretStr("")
-    google_search_engine_id: str = ""
+    # Brave Search API; required by `main()`, optional here so tests need no key.
+    brave_search_api_key: SecretStr = SecretStr("")
 
     # A2A server
     a2a_host: str = "127.0.0.1"
@@ -41,6 +40,8 @@ class Settings(BaseSettings):
     request_timeout_seconds: float = Field(default=120, gt=0)
     http_timeout_seconds: float = Field(default=15, gt=0)
     http_max_retries: int = Field(default=2, ge=0)
+    # Least time between two search requests, for the provider's rate limit.
+    search_min_interval_seconds: float = Field(default=1.0, ge=0)
 
     log_level: str = "INFO"
 

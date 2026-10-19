@@ -82,7 +82,7 @@
                 <mxCell id="telemetry" parent="providers" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;" value="Logging and tracing service&lt;div&gt;( Langfuse? )&lt;/div&gt;" vertex="1">
                     <mxGeometry height="65" width="210" x="70" y="640" as="geometry"/>
                 </mxCell>
-                <mxCell id="google" parent="providers" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;" value="Google Search" vertex="1">
+                <mxCell id="brave" parent="providers" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;" value="Brave Search" vertex="1">
                     <mxGeometry height="65" width="210" x="80" y="252" as="geometry"/>
                 </mxCell>
                 <mxCell id="e1" edge="1" parent="1" source="user" style="html=1;endArrow=classic;exitX=1;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endFill=1;" target="submit" value="requests research">
@@ -118,7 +118,7 @@
                         <mxPoint x="1520" y="385" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="uWKUe7MbI0bGEGscmyaH-5" edge="1" parent="1" source="search" style="html=1;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="google" value="">
+                <mxCell id="uWKUe7MbI0bGEGscmyaH-5" edge="1" parent="1" source="search" style="html=1;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="brave" value="">
                     <mxGeometry relative="1" x="-0.7424" as="geometry">
                         <mxPoint x="1410" y="269" as="sourcePoint"/>
                         <mxPoint x="1710" y="240" as="targetPoint"/>

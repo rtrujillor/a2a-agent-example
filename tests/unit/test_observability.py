@@ -69,3 +69,9 @@ def test_only_the_parsed_serializer_warning_is_silenced():
         warnings.warn("Pydantic serializer warnings:\n  something else", UserWarning)
 
     assert [str(w.message) for w in caught] == ["Pydantic serializer warnings:\n  something else"]
+
+
+def test_httpx_request_urls_are_not_logged_at_info():
+    configure_logging(Settings(_env_file=None, model_name="m", log_level="DEBUG"))
+
+    assert logging.getLogger("httpx").level == logging.WARNING

@@ -55,8 +55,22 @@ def test_secrets_are_hidden_in_repr():
         model_name="m",
         model_api_key="sk-model-secret",
         langfuse_secret_key="lf-secret",
+        brave_search_api_key="brave-secret",
     )
 
     assert "sk-model-secret" not in repr(settings)
     assert "lf-secret" not in repr(settings)
+    assert "brave-secret" not in repr(settings)
     assert settings.model_api_key.get_secret_value() == "sk-model-secret"
+
+
+def test_search_defaults():
+    settings = Settings(_env_file=None, model_name="m")
+
+    assert settings.brave_search_api_key.get_secret_value() == ""
+    assert settings.search_min_interval_seconds == 1.0
+
+
+def test_negative_search_interval_fails():
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, model_name="m", search_min_interval_seconds=-1)

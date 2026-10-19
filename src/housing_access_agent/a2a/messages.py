@@ -1,16 +1,17 @@
-"""Fixed user-facing texts in Spanish and English, and the interpretation and plan summaries."""
+"""Fixed user-facing texts in Spanish and English, and the interpretation, plan, and search summaries."""
 
 from enum import StrEnum
 
-from housing_access_agent.domain.enums import Assumption, LocationLevel, SourceKind, Topic
-from housing_access_agent.domain.models import ClassifiedRequest, ResearchPlan
+from collections.abc import Sequence
+
+from housing_access_agent.domain.enums import Assumption, GapReason, LocationLevel, SourceKind, SourceType, Topic
+from housing_access_agent.domain.models import ClassifiedRequest, Evidence, ResearchPlan, SearchGap
 
 
 class Text(StrEnum):
     INTAKE_EMPTY = "intake_empty"
     INTAKE_TOO_LONG = "intake_too_long"
     INTAKE_UNSUPPORTED = "intake_unsupported"
-    NOT_AVAILABLE = "not_available"
     SCOPE_HINT = "scope_hint"
     REPHRASE = "rephrase"
     FAILURE = "failure"
@@ -22,6 +23,12 @@ class Text(StrEnum):
     PLAN = "plan"
     SEARCH = "search"
     SEARCHES = "searches"
+    SEARCH_HEADING = "search_heading"
+    NO_RESULTS = "no_results"
+    SEARCH_FAILED = "search_failed"
+    SOURCES_FOUND = "sources_found"
+    SEARCHES_WITHOUT_RESULTS = "searches_without_results"
+    NOT_VALIDATED = "not_validated"
 
 
 _TEXTS: dict[str, dict[Text, str]] = {
@@ -31,10 +38,6 @@ _TEXTS: dict[str, dict[Text, str]] = {
             "La pregunta supera el límite de 2.000 caracteres. Acórtala e inténtalo de nuevo."
         ),
         Text.INTAKE_UNSUPPORTED: "Solo se acepta una pregunta en texto, en un único mensaje.",
-        Text.NOT_AVAILABLE: (
-            "La búsqueda de fuentes aún no está disponible: por ahora el agente interpreta la "
-            "pregunta y planifica la investigación."
-        ),
         Text.SCOPE_HINT: (
             "Este agente investiga el acceso a la vivienda en España: precios, alquileres, salarios, "
             "oferta, vivienda pública, derechos de inquilinos, turismo, inversión, viviendas vacías, "
@@ -53,15 +56,20 @@ _TEXTS: dict[str, dict[Text, str]] = {
         Text.PLAN: "Plan de investigación",
         Text.SEARCH: "búsqueda",
         Text.SEARCHES: "búsquedas",
+        Text.SEARCH_HEADING: "Búsqueda",
+        Text.NO_RESULTS: "Sin resultados.",
+        Text.SEARCH_FAILED: "No se ha podido completar la búsqueda.",
+        Text.SOURCES_FOUND: "Fuentes encontradas",
+        Text.SEARCHES_WITHOUT_RESULTS: "Búsquedas sin resultados",
+        Text.NOT_VALIDATED: (
+            "La validación de las fuentes y la respuesta redactada aún no están disponibles: "
+            "por ahora el agente interpreta la pregunta, planifica la investigación y busca fuentes."
+        ),
     },
     "en": {
         Text.INTAKE_EMPTY: "Write a question about housing in Spain.",
         Text.INTAKE_TOO_LONG: "The question is longer than 2,000 characters. Shorten it and try again.",
         Text.INTAKE_UNSUPPORTED: "Only one text question is accepted, in a single message.",
-        Text.NOT_AVAILABLE: (
-            "Source search is not available yet: for now the agent interprets the question "
-            "and plans the research."
-        ),
         Text.SCOPE_HINT: (
             "This agent researches housing access in Spain: prices, rents, wages, supply, public "
             "housing, tenant rights, tourism, investment, vacant homes, displacement, legislation, "
@@ -80,6 +88,15 @@ _TEXTS: dict[str, dict[Text, str]] = {
         Text.PLAN: "Research plan",
         Text.SEARCH: "search",
         Text.SEARCHES: "searches",
+        Text.SEARCH_HEADING: "Search",
+        Text.NO_RESULTS: "No results.",
+        Text.SEARCH_FAILED: "The search could not be completed.",
+        Text.SOURCES_FOUND: "Sources found",
+        Text.SEARCHES_WITHOUT_RESULTS: "Searches without results",
+        Text.NOT_VALIDATED: (
+            "Source validation and the written answer are not available yet: for now the agent "
+            "interprets the question, plans the research, and searches for sources."
+        ),
     },
 }
 
@@ -166,6 +183,22 @@ SOURCE_KIND_LABELS: dict[str, dict[SourceKind, str]] = {
 }
 
 
+SOURCE_TYPE_LABELS: dict[str, dict[SourceType, str]] = {
+    "es": {
+        SourceType.OFFICIAL: "oficiales",
+        SourceType.MEDIA: "medios",
+        SourceType.MARKET: "portales (precios de oferta)",
+        SourceType.OTHER: "otras",
+    },
+    "en": {
+        SourceType.OFFICIAL: "official",
+        SourceType.MEDIA: "media",
+        SourceType.MARKET: "portals (asking prices)",
+        SourceType.OTHER: "other",
+    },
+}
+
+
 def catalog_language(language: str | None) -> str:
     """English for English requests, Spanish for everything else."""
     primary = (language or "").strip().lower().replace("_", "-").split("-")[0]
@@ -211,3 +244,37 @@ def plan_summary(plan: ResearchPlan, language: str | None) -> str:
     lines = [f"{_TEXTS[lang][Text.PLAN]} ({count} {noun}):"]
     lines += [f"- {step.sub_question} · {SOURCE_KIND_LABELS[lang][step.source_kind]}" for step in plan.steps]
     return "\n".join(lines)
+
+
+def search_update(
+    plan: ResearchPlan, step: int, evidence: Sequence[Evidence], gaps: Sequence[SearchGap], language: str | None
+) -> str:
+    """One finished search: its number, sub-question, source kind, and outcome. No query, domain, or URL."""
+    lang = catalog_language(language)
+    texts = _TEXTS[lang]
+    planned = plan.steps[step]
+    heading = (
+        f"{texts[Text.SEARCH_HEADING]} {step + 1}/{len(plan.steps)} · "
+        f"{SOURCE_KIND_LABELS[lang][planned.source_kind]}: {planned.sub_question}"
+    )
+    gap = next((item for item in gaps if item.step == step), None)
+    if gap is not None:
+        outcome = texts[Text.SEARCH_FAILED if gap.reason is GapReason.FAILED else Text.NO_RESULTS]
+    else:
+        outcome = f"{texts[Text.SOURCES_FOUND]}: {sum(1 for item in evidence if item.step == step)}."
+    return f"{heading}\n{outcome}"
+
+
+def sources_summary(evidence: Sequence[Evidence], gaps: Sequence[SearchGap], language: str | None) -> str:
+    """Sources found by type and searches without results, until validation and synthesis exist."""
+    lang = catalog_language(language)
+    texts = _TEXTS[lang]
+    counts = {kind: sum(1 for item in evidence if item.source.source_type is kind) for kind in SourceType}
+    by_type = " · ".join(f"{SOURCE_TYPE_LABELS[lang][kind]}: {n}" for kind, n in counts.items() if n)
+    return "\n".join(
+        [
+            f"{texts[Text.SOURCES_FOUND]}: {len(evidence)} ({by_type}).",
+            f"{texts[Text.SEARCHES_WITHOUT_RESULTS]}: {len(gaps)}.",
+            texts[Text.NOT_VALIDATED],
+        ]
+    )

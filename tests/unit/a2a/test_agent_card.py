@@ -11,7 +11,7 @@ def _settings() -> Settings:
         _env_file=None,
         model_name="m",
         model_api_key="sk-model-secret",
-        google_search_api_key="google-secret",
+        brave_search_api_key="brave-secret",
         langfuse_public_key="pk-lf-public",
         langfuse_secret_key="sk-lf-secret",
         a2a_agent_url="http://127.0.0.1:8000",
@@ -37,5 +37,5 @@ def test_card_fields():
 def test_card_holds_no_secrets():
     serialized = json.dumps(agent_card_to_dict(build_agent_card(_settings())))
 
-    for secret in ("sk-model-secret", "google-secret", "pk-lf-public", "sk-lf-secret"):
+    for secret in ("sk-model-secret", "brave-secret", "pk-lf-public", "sk-lf-secret"):
         assert secret not in serialized

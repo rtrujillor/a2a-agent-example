@@ -1,6 +1,7 @@
-"""Test doubles for the language model. No network access."""
+"""Test doubles for the language model and search tools. No network access."""
 
 from collections.abc import Sequence
+from datetime import UTC, datetime
 from typing import Any
 
 from langchain_core.language_models import BaseChatModel
@@ -8,6 +9,10 @@ from langchain_core.messages import BaseMessage
 from langchain_core.outputs import ChatResult
 from langchain_core.runnables import RunnableLambda
 from pydantic import BaseModel, PrivateAttr
+
+from housing_access_agent.domain.enums import ToolName
+from housing_access_agent.domain.models import SearchQuery, SourceResult
+from housing_access_agent.tools.catalog import DEFAULT_CATALOG
 
 
 def classification(**overrides: Any) -> dict[str, Any]:
@@ -110,3 +115,44 @@ class FakeStructuredChatModel(BaseChatModel):
             return schema.model_validate(item)
 
         return RunnableLambda(respond)
+
+
+def source(url: str, **overrides: Any) -> SourceResult:
+    """A retrieved source typed by its domain, as a real tool would."""
+    fields: dict[str, Any] = {
+        "url": url,
+        "title": "Título",
+        "publisher": "Editor",
+        "retrieved_at": datetime(2026, 10, 19, tzinfo=UTC),
+        "source_type": DEFAULT_CATALOG.source_type_for(url),
+        "snippet": "Resumen",
+    }
+    fields.update(overrides)
+    return SourceResult(**fields)
+
+
+class FakeSearchTool:
+    """`web_search` that answers each call from a script: a list of sources or an exception.
+
+    With `numbered` set, an empty script answers with one new source per call instead of failing.
+    """
+
+    def __init__(self, script: list[Any] | None = None, numbered: bool = False):
+        self.script = list(script or [])
+        self.numbered = numbered
+        self.queries: list[SearchQuery] = []
+
+    @property
+    def name(self) -> ToolName:
+        return ToolName.WEB_SEARCH
+
+    async def run(self, query: SearchQuery) -> list[SourceResult]:
+        self.queries.append(query)
+        if not self.script:
+            if self.numbered:
+                return [source(f"https://www.ine.es/fuente-{len(self.queries)}")]
+            raise AssertionError("FakeSearchTool has no scripted result left")
+        item = self.script.pop(0)
+        if isinstance(item, BaseException):
+            raise item
+        return list(item)

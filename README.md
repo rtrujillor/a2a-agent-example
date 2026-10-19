@@ -13,10 +13,13 @@ the full scope, sourcing, and response rules.
 
 > **Status:** early implementation. The web client sends questions, and the
 > A2A server interprets and classifies them (scope, topic, location, period,
-> assumptions, clarifying questions), then plans bounded research for in-scope
-> requests and shows the plan as progress. Retrieval, validation, and
-> synthesis are not implemented yet, so in-scope requests end with a "source
-> search not available yet" message.
+> assumptions, clarifying questions), plans bounded research for in-scope
+> requests, and runs each planned search through the Brave Search API,
+> reporting the plan and every search as progress. Official searches keep only
+> results from their official sites; a failed or empty search is a gap, and the
+> task fails only when no search finds anything. Validation and synthesis are
+> not implemented yet, so in-scope requests end with a count of the sources
+> found by type, and a note that the written answer is not available yet.
 
 ## Architecture
 
@@ -66,7 +69,7 @@ Supporting components: **Research State** (shared workflow state) and
 | Workflow Orchestrator and steps | LangGraph `StateGraph` with classify, plan, research, validate, and synthesize nodes |
 | Research State | Typed graph state + LangGraph `InMemorySaver` (short-term memory) |
 | Language Model Service | LM Studio, OpenAI-compatible API (`:1234/v1`) |
-| Web Search Service | Google Programmable Search (Custom Search JSON API) |
+| Web Search Service | Brave Search API |
 | Telemetry Service | Langfuse, self-hosted with Docker Compose (`:3000`) |
 | Configuration | Environment variables from a git-ignored `.env` |
 
@@ -82,7 +85,7 @@ src/
 └── housing_access_agent/
     ├── a2a/                    # Agent card and AgentExecutor
     ├── domain/                 # Research and evidence types
-    ├── tools/                  # Google Search and official-source adapters
+    ├── tools/                  # Brave Search and official-source adapters
     ├── workflow/               # classifier, planner, researcher, validator, synthesizer
     ├── config.py               # Environment-based configuration
     ├── graph.py                # LangGraph composition root
@@ -107,8 +110,8 @@ docs/architecture/              # draw.io diagrams
   API defines it. Some reasoning models return it in `reasoning_content`
   instead. For those, set `MODEL_REASONING_EFFORT=none`.
 - Docker (for self-hosted Langfuse)
-- Google Programmable Search API key and search engine ID. Check that the
-  Custom Search JSON API is still available to new projects before relying on it.
+- A Brave Search API key (https://brave.com/search/api/). The agent does not
+  start without one.
 
 ## Configuration
 
@@ -118,7 +121,8 @@ Copy `.env.example` to `.env` and fill in the values. Never commit `.env`.
 | --- | --- |
 | `MODEL_BASE_URL`, `MODEL_NAME`, `MODEL_API_KEY` | OpenAI-compatible model endpoint (LM Studio) |
 | `MODEL_REASONING_EFFORT` | Optional. Sent as `reasoning_effort` when set, for example `none` for reasoning models; not sent when empty |
-| `GOOGLE_SEARCH_API_KEY`, `GOOGLE_SEARCH_ENGINE_ID` | Google Programmable Search |
+| `BRAVE_SEARCH_API_KEY` | Brave Search API key. Required: the agent exits at startup when it is empty |
+| `SEARCH_MIN_INTERVAL_SECONDS` | Least time between two search requests, for Brave's rate limit (default 1) |
 | `A2A_HOST`, `A2A_PORT`, `A2A_AGENT_URL` | Agent bind address and public A2A URL |
 | `CORS_ALLOWED_ORIGINS` | Web client origins allowed to call the agent |
 | `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` | Tracing |

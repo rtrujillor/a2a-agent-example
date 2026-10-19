@@ -3,17 +3,35 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Overwrite
 
 from housing_access_agent.config import Settings
-from housing_access_agent.domain.enums import Outcome
+from housing_access_agent.domain.enums import Outcome, ToolName
 from housing_access_agent.graph import build_graph
 from housing_access_agent.workflow.classifier import make_classifier
 from housing_access_agent.workflow.planner import make_planner
-from tests.fakes import FakeStructuredChatModel, ambiguous, classification, plan
+from housing_access_agent.workflow.researcher import make_researcher
+from tests.fakes import (
+    FakeSearchTool,
+    FakeStructuredChatModel,
+    ambiguous,
+    classification,
+    media_step,
+    plan,
+    plan_step,
+    source,
+)
 
 
-def _graph(script):
+def _graph(script, searches=None):
     model = FakeStructuredChatModel(script=list(script))
     settings = Settings(_env_file=None, model_name="fake")
-    return build_graph(make_classifier(model, settings), make_planner(model, settings), InMemorySaver()), model
+    tool = FakeSearchTool(searches if searches is not None else [[source("https://www.ine.es/a")]] * 3)
+    graph = build_graph(
+        make_classifier(model, settings),
+        make_planner(model, settings),
+        make_researcher({ToolName.WEB_SEARCH: tool}, settings),
+        InMemorySaver(),
+    )
+    graph.tool = tool
+    return graph, model
 
 
 def _config(thread_id):
@@ -77,3 +95,19 @@ async def test_other_outcomes_are_not_planned(payload):
 
     assert result.get("plan") is None
     assert len(model.calls) == 1
+    assert graph.tool.queries == []
+
+
+async def test_in_scope_plan_is_researched_step_by_step():
+    steps = [plan_step(), media_step(query="a"), media_step(query="b")]
+    searches = [[source("https://www.ine.es/a")], [source("https://elpais.com/b")], []]
+    graph, model = _graph([classification(), plan(*steps)], searches)
+
+    result = await graph.ainvoke({"user_turns": ["Alquileres en Madrid"], "clarification_rounds": 0}, _config("r"))
+
+    assert len(graph.tool.queries) == 3
+    assert result["searches_used"] == 3
+    assert result["research_step"] == 3
+    assert [item.step for item in result["evidence"]] == [0, 1]
+    assert [gap.step for gap in result["gaps"]] == [2]
+    assert len(model.calls) == 2

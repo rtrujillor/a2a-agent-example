@@ -7,12 +7,14 @@ from housing_access_agent.a2a.messages import (
     catalog_language,
     interpretation,
     plan_summary,
+    search_update,
+    sources_summary,
     text,
 )
-from housing_access_agent.domain.enums import Assumption, SourceKind, ToolName, Topic
-from housing_access_agent.domain.models import ModelClassification, PlanStep, ResearchPlan
+from housing_access_agent.domain.enums import Assumption, GapReason, SourceKind, SourceType, ToolName, Topic
+from housing_access_agent.domain.models import Evidence, ModelClassification, PlanStep, ResearchPlan, SearchGap
 from housing_access_agent.workflow.classifier import apply_defaults
-from tests.fakes import classification
+from tests.fakes import classification, source
 
 
 def _classified(**overrides):
@@ -115,6 +117,78 @@ def test_english_plan_summary_with_one_step():
     assert plan_summary(plan, "en") == "Research plan (1 search):\n- What do portals ask? · portals (asking prices)"
 
 
-def test_not_available_names_source_search():
-    assert text(Text.NOT_AVAILABLE).startswith("La búsqueda de fuentes aún no está disponible")
-    assert text(Text.NOT_AVAILABLE, "en").startswith("Source search is not available yet")
+def _search_plan():
+    return ResearchPlan(
+        iteration=0,
+        steps=[
+            _step("¿Qué se ha publicado?", SourceKind.MEDIA),
+            _step("¿Cuál es el alquiler medio?", SourceKind.OFFICIAL, ["ine.es"]),
+            _step("¿Qué piden los portales?", SourceKind.MARKET),
+            _step("¿Qué dice el BOE?", SourceKind.OFFICIAL, ["boe.es"]),
+        ],
+    )
+
+
+def _evidence(step, url):
+    return Evidence(step=step, source=source(url))
+
+
+def test_search_update_with_sources():
+    evidence = [_evidence(0, "https://elpais.com/a")] + [_evidence(1, f"https://www.ine.es/{n}") for n in range(3)]
+
+    update = search_update(_search_plan(), 1, evidence, [], "es")
+
+    assert update.splitlines() == [
+        "Búsqueda 2/4 · fuentes oficiales: ¿Cuál es el alquiler medio?",
+        "Fuentes encontradas: 3.",
+    ]
+    for hidden in ("consulta secreta", "ine.es", "https://"):
+        assert hidden not in update
+
+
+@pytest.mark.parametrize(
+    ("reason", "lang", "expected"),
+    [
+        (GapReason.EMPTY, "es", "Sin resultados."),
+        (GapReason.FAILED, "es", "No se ha podido completar la búsqueda."),
+        (GapReason.FAILED, "en", "The search could not be completed."),
+    ],
+)
+def test_search_update_for_gaps(reason, lang, expected):
+    update = search_update(_search_plan(), 2, [], [SearchGap(step=2, reason=reason)], lang)
+
+    assert update.splitlines()[1] == expected
+    assert update.splitlines()[0].endswith(("portales (precios de oferta): ¿Qué piden los portales?",
+                                            "portals (asking prices): ¿Qué piden los portales?"))
+
+
+def test_sources_summary_by_type():
+    evidence = (
+        [_evidence(0, f"https://www.ine.es/{n}") for n in range(4)]
+        + [_evidence(1, f"https://elpais.com/{n}") for n in range(3)]
+        + [_evidence(2, f"https://www.idealista.com/{n}") for n in range(2)]
+        + [_evidence(3, "https://example-blog.com/x")]
+    )
+
+    summary = sources_summary(evidence, [SearchGap(step=3, reason=GapReason.EMPTY)], "es")
+
+    assert summary.splitlines() == [
+        "Fuentes encontradas: 10 (oficiales: 4 · medios: 3 · portales (precios de oferta): 2 · otras: 1).",
+        "Búsquedas sin resultados: 1.",
+        text(Text.NOT_VALIDATED, "es"),
+    ]
+    assert "validación" in summary and "https://" not in summary
+
+
+def test_english_sources_summary_skips_empty_types():
+    summary = sources_summary([_evidence(0, "https://www.boe.es/a")], [], "en")
+
+    assert summary.splitlines()[:2] == ["Sources found: 1 (official: 1).", "Searches without results: 0."]
+    assert summary.splitlines()[2].startswith("Source validation and the written answer are not available yet")
+
+
+def test_every_source_type_has_a_label():
+    from housing_access_agent.a2a.messages import SOURCE_TYPE_LABELS
+
+    for lang in ("es", "en"):
+        assert set(SOURCE_TYPE_LABELS[lang]) == set(SourceType)

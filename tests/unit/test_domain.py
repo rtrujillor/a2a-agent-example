@@ -1,8 +1,17 @@
+from datetime import UTC, datetime
+
 import pytest
 from pydantic import ValidationError
 
-from housing_access_agent.domain.enums import LocationLevel, SourceKind, Topic, Verdict
-from housing_access_agent.domain.models import ModelClassification, ModelPlan, ModelPlanStep
+from housing_access_agent.domain.enums import GapReason, LocationLevel, SourceKind, Topic, Verdict
+from housing_access_agent.domain.models import (
+    Evidence,
+    ModelClassification,
+    ModelPlan,
+    ModelPlanStep,
+    SearchGap,
+    SourceResult,
+)
 
 
 def _payload(**overrides):
@@ -107,3 +116,27 @@ def test_plan_step_extra_fields_are_invalid():
 def test_plan_step_invalid_freshness_is_invalid():
     with pytest.raises(ValidationError):
         ModelPlanStep.model_validate(_step(freshness="yesterday"))
+
+
+def _source():
+    return SourceResult(
+        url="https://www.ine.es/prensa/ipva.htm",
+        title="IPVA",
+        publisher="INE",
+        retrieved_at=datetime(2026, 10, 19, tzinfo=UTC),
+        source_type="official",
+    )
+
+
+def test_evidence_rejects_negative_step():
+    with pytest.raises(ValidationError):
+        Evidence(step=-1, source=_source())
+
+
+def test_gap_rejects_unknown_reason():
+    with pytest.raises(ValidationError):
+        SearchGap(step=0, reason="timeout")
+
+
+def test_gap_reasons():
+    assert SearchGap(step=1, reason="empty").reason is GapReason.EMPTY

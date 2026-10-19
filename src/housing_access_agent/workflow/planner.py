@@ -136,7 +136,8 @@ def make_planner(
                             len(result.steps),
                             budget,
                         )
-                        return {"plan": enforced, "planner_iterations": iteration + 1}
+                        # A new plan is researched from its first step.
+                        return {"plan": enforced, "planner_iterations": iteration + 1, "research_step": 0}
                     logger.warning("No valid plan after enforcement (attempt %d)", attempt + 1)
                 else:
                     logger.warning("Empty planner output (attempt %d)", attempt + 1)

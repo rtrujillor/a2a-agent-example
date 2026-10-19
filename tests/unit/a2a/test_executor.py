@@ -9,13 +9,13 @@ from langgraph.types import Overwrite
 
 from housing_access_agent.a2a.executor import HousingAgentExecutor
 from housing_access_agent.config import Settings
-from housing_access_agent.domain.enums import Outcome, Topic
+from housing_access_agent.domain.enums import GapReason, Outcome, Topic
 from housing_access_agent.domain.errors import ClassificationError, ModelUnavailableError, PlanningError
-from housing_access_agent.domain.models import ModelClassification, ModelPlan
+from housing_access_agent.domain.models import Evidence, ModelClassification, ModelPlan, SearchGap
 from housing_access_agent.tools.catalog import DEFAULT_CATALOG
 from housing_access_agent.workflow.classifier import apply_defaults
 from housing_access_agent.workflow.planner import enforce_plan
-from tests.fakes import ambiguous, classification, media_step, plan, plan_step
+from tests.fakes import ambiguous, classification, media_step, plan, plan_step, source
 
 QUESTION = "¿Cómo han evolucionado los alquileres en Madrid desde 2020?"
 
@@ -57,7 +57,18 @@ def _state(outcome, **payload):
     state = {"outcome": outcome, "classification": apply_defaults(ModelClassification.model_validate(data))}
     if outcome is Outcome.IN_SCOPE:
         state["plan"] = _plan()
+        state |= _researched()
     return state
+
+
+def _researched(evidence=None, gaps=None, steps=2):
+    """State after research of the default two-step plan: one official and one media source."""
+    if evidence is None:
+        evidence = [
+            Evidence(step=0, source=source("https://www.ine.es/prensa/ipva.htm")),
+            Evidence(step=1, source=source("https://elpais.com/economia/alquiler")),
+        ]
+    return {"research_step": steps, "evidence": evidence, "gaps": gaps or [], "searches_used": steps}
 
 
 def _context(parts=None, task=None):
@@ -99,8 +110,15 @@ async def test_in_scope_reports_interpretation_then_completes():
     assert states[1][1].startswith("Entendido: alquileres · Madrid")
     assert states[2][0] == TaskState.TASK_STATE_WORKING
     assert states[2][1].startswith("Plan de investigación (2 búsquedas):")
-    assert states[3][0] == TaskState.TASK_STATE_COMPLETED
-    assert "aún no está disponible" in states[3][1]
+    assert states[3] == (
+        TaskState.TASK_STATE_WORKING,
+        "Búsqueda 1/2 · fuentes oficiales: ¿Cuál es el alquiler medio en Madrid?\nFuentes encontradas: 1.",
+    )
+    assert states[4][1].startswith("Búsqueda 2/2 · medios:")
+    assert states[5][0] == TaskState.TASK_STATE_COMPLETED
+    assert states[5][1].startswith("Fuentes encontradas: 2 (oficiales: 1 · medios: 1).")
+    assert "aún no están disponibles" in states[5][1]
+    assert len(states) == 6
 
 
 async def test_english_request_gets_english_texts():
@@ -109,7 +127,9 @@ async def test_english_request_gets_english_texts():
     states = _statuses(events)
     assert states[1][1].startswith("Understood: rents")
     assert states[2][1].startswith("Research plan (2 searches):")
-    assert "not available yet" in states[3][1]
+    assert states[3][1].startswith("Search 1/2 · official sources:")
+    assert states[5][1].startswith("Sources found: 2 (official: 1 · media: 1).")
+    assert "not available yet" in states[5][1]
 
 
 async def test_needs_clarification_requires_input_with_question():
@@ -188,6 +208,9 @@ async def test_continuation_appends_the_reply():
         "plan": None,
         "planner_iterations": 0,
         "searches_used": 0,
+        "research_step": 0,
+        "evidence": [],
+        "gaps": [],
     }
     assert graph.configs[0]["configurable"]["thread_id"] == "c1"
 
@@ -243,7 +266,7 @@ async def test_interpretation_is_sent_before_planning_runs():
     events = await _run(StubGraph(states=[{}, after_classify, classified]))
 
     states = _statuses(events)
-    assert [state for state, _ in states] == [TaskState.TASK_STATE_WORKING] * 3 + [TaskState.TASK_STATE_COMPLETED]
+    assert [state for state, _ in states] == [TaskState.TASK_STATE_WORKING] * 5 + [TaskState.TASK_STATE_COMPLETED]
     assert states[1][1].startswith("Entendido")
     assert states[2][1].startswith("Plan de investigación")
 
@@ -273,3 +296,53 @@ async def test_no_plan_update_for_ambiguous_request_with_stale_plan():
     events = await _run(StubGraph(stale))
 
     assert not any("Plan de investigación" in message for _, message in _statuses(events))
+
+
+async def test_each_search_is_reported_once_as_it_finishes():
+    planned = _state(Outcome.IN_SCOPE) | _researched(evidence=[], steps=0)
+    first = planned | _researched(evidence=_state(Outcome.IN_SCOPE)["evidence"][:1], steps=1)
+    second = _state(Outcome.IN_SCOPE)
+    events = await _run(StubGraph(states=[planned, first, first, second]))
+
+    messages = [message for _, message in _statuses(events)]
+    searches = [message for message in messages if message.startswith("Búsqueda")]
+    assert [m.splitlines()[0][:13] for m in searches] == ["Búsqueda 1/2 ", "Búsqueda 2/2 "]
+    assert messages.index(searches[0]) > next(i for i, m in enumerate(messages) if m.startswith("Plan"))
+
+
+async def test_no_search_update_for_ambiguous_request_with_stale_research():
+    stale = _state(Outcome.NEEDS_CLARIFICATION, **ambiguous()) | {"plan": _plan()} | _researched()
+    events = await _run(StubGraph(stale))
+
+    assert not any(message.startswith("Búsqueda") for _, message in _statuses(events))
+
+
+async def test_every_search_a_gap_fails_after_the_search_updates(caplog):
+    gaps = [SearchGap(step=0, reason=GapReason.FAILED), SearchGap(step=1, reason=GapReason.EMPTY)]
+    state = _state(Outcome.IN_SCOPE) | _researched(evidence=[], gaps=gaps)
+    with caplog.at_level(logging.WARNING):
+        events = await _run(StubGraph(state))
+
+    states = _statuses(events)
+    assert states[3][1].endswith("No se ha podido completar la búsqueda.")
+    assert states[4][1].endswith("Sin resultados.")
+    assert states[-1] == (TaskState.TASK_STATE_FAILED, "No se ha podido procesar la solicitud. Inténtalo de nuevo más tarde.")
+    assert "no search kept a source" in caplog.text
+    assert QUESTION not in caplog.text
+
+
+async def test_search_texts_hide_queries_and_domains():
+    events = await _run(StubGraph(_state(Outcome.IN_SCOPE)))
+
+    for _, message in _statuses(events):
+        for hidden in ("site:", "ine.es", "https://", plan_step()["query"]):
+            assert hidden not in message
+
+
+async def test_new_round_resets_research():
+    graph = StubGraph(_state(Outcome.IN_SCOPE))
+    await _run(graph)
+
+    graph_input = graph.inputs[0]
+    assert graph_input["research_step"] == 0
+    assert graph_input["evidence"] == [] and graph_input["gaps"] == []

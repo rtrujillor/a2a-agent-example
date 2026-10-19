@@ -12,6 +12,9 @@ LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
 # Client libraries whose DEBUG output would bury the agent's own debug lines.
 QUIET_LIBRARIES = ("httpcore", "openai", "langsmith", "urllib3")
 
+# httpx logs every request URL at INFO, and search URLs carry the query.
+URL_LOGGING_LIBRARIES = ("httpx",)
+
 # langchain-openai serializes the streamed `parsed` field against a `None` type on every
 # structured call; the warning is harmless and would flood the console.
 PARSED_SERIALIZER_WARNING = r"(?s)Pydantic serializer warnings:.*field_name='parsed'"
@@ -21,6 +24,8 @@ def configure_logging(settings: Settings) -> None:
     logging.basicConfig(level=settings.log_level.upper(), format=LOG_FORMAT)
     for name in QUIET_LIBRARIES:
         logging.getLogger(name).setLevel(max(logging.INFO, logging.getLogger().level))
+    for name in URL_LOGGING_LIBRARIES:
+        logging.getLogger(name).setLevel(logging.WARNING)
     warnings.filterwarnings("ignore", message=PARSED_SERIALIZER_WARNING, category=UserWarning)
 
 

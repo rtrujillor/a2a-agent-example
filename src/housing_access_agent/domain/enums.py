@@ -89,6 +89,13 @@ class SourceType(StrEnum):
     OTHER = "other"
 
 
+class GapReason(StrEnum):
+    """Why a plan step kept no source."""
+
+    EMPTY = "empty"
+    FAILED = "failed"
+
+
 class Freshness(StrEnum):
     """How recent search results must be."""
 

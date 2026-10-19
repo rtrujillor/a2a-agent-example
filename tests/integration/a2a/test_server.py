@@ -1,4 +1,4 @@
-"""The A2A server in process, with a fake chat model. No network access."""
+"""The A2A server in process, with a fake chat model and search tool. No network access."""
 
 import asyncio
 import json
@@ -9,7 +9,16 @@ import pytest
 
 from housing_access_agent.config import Settings
 from housing_access_agent.server import create_app
-from tests.fakes import FakeStructuredChatModel, ambiguous, classification, media_step, plan, plan_step
+from tests.fakes import (
+    FakeSearchTool,
+    FakeStructuredChatModel,
+    ambiguous,
+    classification,
+    media_step,
+    plan,
+    plan_step,
+    source,
+)
 
 ORIGIN = "http://localhost:5173"
 FIXED_FAILURE = "No se ha podido procesar la solicitud. Inténtalo de nuevo más tarde."
@@ -25,10 +34,12 @@ def _settings(**overrides) -> Settings:
     )
 
 
-def _client(script, **settings):
+def _client(script, searches=None, **settings):
     model = FakeStructuredChatModel(script=list(script))
-    app = create_app(_settings(**settings), model)
+    tool = FakeSearchTool(searches, numbered=searches is None)
+    app = create_app(_settings(**settings), model, tool)
     client = httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://127.0.0.1:8000")
+    client.search_tool = tool
     return client, model
 
 
@@ -109,6 +120,8 @@ async def test_in_scope_streams_progress_and_completes():
         "TASK_STATE_WORKING",
         "TASK_STATE_WORKING",
         "TASK_STATE_WORKING",
+        "TASK_STATE_WORKING",
+        "TASK_STATE_WORKING",
         "TASK_STATE_COMPLETED",
     ]
     assert states[2][1].startswith("Entendido: alquileres · España · últimos datos disponibles.")
@@ -118,7 +131,51 @@ async def test_in_scope_streams_progress_and_completes():
         "- ¿Cuál es el alquiler medio en Madrid? · fuentes oficiales",
         "- ¿Qué se ha publicado recientemente? · medios",
     ]
-    assert states[4][1].startswith("La búsqueda de fuentes aún no está disponible")
+    assert states[4][1] == (
+        "Búsqueda 1/2 · fuentes oficiales: ¿Cuál es el alquiler medio en Madrid?\nFuentes encontradas: 1."
+    )
+    assert states[5][1].startswith("Búsqueda 2/2 · medios: ¿Qué se ha publicado recientemente?")
+    assert states[6][1].startswith("Fuentes encontradas: 2 (oficiales: 2).")
+    assert "aún no están disponibles" in states[6][1]
+    assert len(client.search_tool.queries) == 2
+
+
+async def test_official_step_keeps_only_its_sites():
+    searches = [[source("https://example-blog.com/x"), source("https://www.ine.es/ipva")], [source("https://elpais.com/a")]]
+    client, _ = _client([classification(), plan(plan_step(), media_step())], searches)
+    async with client:
+        events = await _stream(client, _message("Alquileres en Madrid"))
+
+    states = _states(events)
+    assert states[-1][0] == "TASK_STATE_COMPLETED"
+    assert states[-1][1].startswith("Fuentes encontradas: 2 (oficiales: 1 · medios: 1).")
+    assert client.search_tool.queries[0].sites == ["ine.es"]
+
+
+async def test_every_search_empty_fails_after_search_updates():
+    client, _ = _client([classification(), plan(plan_step(), media_step())], [[], []])
+    async with client:
+        events = await _stream(client, _message("Alquileres en Madrid"))
+
+    states = _states(events)
+    assert states[-1] == ("TASK_STATE_FAILED", FIXED_FAILURE)
+    assert states[-2][1].startswith("Búsqueda 2/2") and states[-2][1].endswith("Sin resultados.")
+    assert states[-3][1].startswith("Búsqueda 1/2")
+
+
+async def test_failed_search_is_reported_without_detail():
+    from housing_access_agent.tools.base import SearchErrorCategory, SearchToolError
+
+    searches = [SearchToolError(SearchErrorCategory.REJECTED), [source("https://elpais.com/a")]]
+    client, _ = _client([classification(), plan(plan_step(), media_step())], searches)
+    async with client:
+        events = await _stream(client, _message("Alquileres en Madrid"))
+
+    states = _states(events)
+    assert states[4][1].endswith("No se ha podido completar la búsqueda.")
+    assert "rejected" not in states[4][1]
+    assert states[-1][0] == "TASK_STATE_COMPLETED"
+    assert "Búsquedas sin resultados: 1." in states[-1][1]
 
 
 async def test_out_of_scope_is_rejected():
@@ -228,7 +285,7 @@ class SlowModel(FakeStructuredChatModel):
 
 
 async def test_request_timeout_fails():
-    app = create_app(_settings(request_timeout_seconds=0.05), SlowModel())
+    app = create_app(_settings(request_timeout_seconds=0.05), SlowModel(), FakeSearchTool())
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://127.0.0.1:8000") as client:
         events = await _stream(client, _message("Alquileres en Madrid"))
 

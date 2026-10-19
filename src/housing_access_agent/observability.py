@@ -34,7 +34,8 @@ def langfuse_callbacks(settings: Settings) -> list[Any]:
         from langfuse import Langfuse
         from langfuse.langchain import CallbackHandler
     except ImportError as error:
-        logger.warning("Langfuse tracing disabled: %s", error)
+        # Both keys are set, so tracing was wanted: make the gap hard to miss.
+        logger.error("Langfuse tracing disabled: the integration could not be imported (%s)", error)
         return []
 
     Langfuse(public_key=public_key, secret_key=secret_key, host=settings.langfuse_host)

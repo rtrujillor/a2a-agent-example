@@ -28,7 +28,26 @@ def test_missing_integration_disables_tracing(monkeypatch, caplog):
 
     assert langfuse_callbacks(settings) == []
     assert "tracing disabled" in caplog.text
+    assert caplog.records[-1].levelno == logging.ERROR
     assert "sk-secret" not in caplog.text
+
+
+def test_both_keys_give_a_langfuse_handler():
+    # Building the client and handler sends nothing until traces are flushed.
+    from langfuse.langchain import CallbackHandler
+
+    settings = Settings(
+        _env_file=None,
+        model_name="m",
+        langfuse_host="http://127.0.0.1:9",
+        langfuse_public_key="pk-test",
+        langfuse_secret_key="sk-test",
+    )
+
+    callbacks = langfuse_callbacks(settings)
+
+    assert len(callbacks) == 1
+    assert isinstance(callbacks[0], CallbackHandler)
 
 
 def test_logger_needs_no_network():

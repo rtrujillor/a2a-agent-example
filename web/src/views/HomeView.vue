@@ -11,6 +11,7 @@ import {
   SearchIcon,
 } from '@lucide/vue'
 import ExampleQuestions from '@/components/ExampleQuestions.vue'
+import ResearchProgress from '@/components/ResearchProgress.vue'
 import ResearchRequestForm from '@/components/ResearchRequestForm.vue'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -54,6 +55,7 @@ const exclusions = [
         class="flex flex-col gap-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:delay-100 motion-safe:duration-500 motion-safe:fill-mode-both"
       >
         <ResearchRequestForm ref="form" />
+        <ResearchProgress />
         <ExampleQuestions @applied="form?.focus()" />
       </div>
     </section>

@@ -103,7 +103,78 @@ describe('a2aClient', () => {
       taskId: 'task-1',
       contextId: 'ctx-1',
       state: 'TASK_STATE_SUBMITTED',
+      text: '',
     })
+  })
+
+  it('maps the text of status messages', async () => {
+    const statusUpdate = (state: string, message?: unknown) => ({
+      statusUpdate: { taskId: 'task-1', contextId: 'ctx-1', status: { state, message } },
+    })
+    const agentMessage = (...texts: string[]) => ({
+      messageId: 'm1',
+      role: 'ROLE_AGENT',
+      parts: texts.map((text) => ({ text })),
+    })
+    const agent = fakeAgent({
+      stream: {
+        results: [
+          submittedTask,
+          statusUpdate('TASK_STATE_WORKING'),
+          statusUpdate('TASK_STATE_REJECTED', agentMessage('No es vivienda.', '\nOtra línea')),
+        ],
+      },
+    })
+    const submission = await createA2AService({
+      agentUrl: AGENT_URL,
+      fetchImpl: agent.fetchImpl,
+    }).submitResearch('Hola')
+
+    const working = await submission.events.next()
+    const rejected = await submission.events.next()
+    expect(working.value).toMatchObject({ kind: 'status', state: 'TASK_STATE_WORKING', text: '' })
+    expect(rejected.value).toMatchObject({
+      kind: 'status',
+      state: 'TASK_STATE_REJECTED',
+      text: 'No es vivienda.\nOtra línea',
+    })
+  })
+
+  it('replies on the task and context ids it is given', async () => {
+    const agent = fakeAgent({
+      stream: {
+        results: [
+          {
+            statusUpdate: {
+              taskId: 'task-1',
+              contextId: 'ctx-1',
+              status: { state: 'TASK_STATE_WORKING' },
+            },
+          },
+        ],
+      },
+    })
+    const submission = await createA2AService({
+      agentUrl: AGENT_URL,
+      fetchImpl: agent.fetchImpl,
+    }).replyToTask({ taskId: 'task-1', contextId: 'ctx-1' }, 'Alquiler en Bilbao')
+
+    const message = agent.rpcRequests[0]!.request.params.message
+    expect(message.taskId).toBe('task-1')
+    expect(message.contextId).toBe('ctx-1')
+    expect(message.parts).toEqual([expect.objectContaining({ text: 'Alquiler en Bilbao' })])
+    // A continuation starts with a status update, not a task.
+    expect(submission.first).toMatchObject({ kind: 'status', state: 'TASK_STATE_WORKING' })
+  })
+
+  it.each([
+    ['a rejected fetch', () => vi.fn<typeof fetch>().mockRejectedValue(new TypeError('x'))],
+    ['an empty stream', () => fakeAgent({ stream: { results: [] } }).fetchImpl],
+  ])('throws AgentUnavailableError when a reply meets %s', async (_label, makeFetch) => {
+    const service = createA2AService({ agentUrl: AGENT_URL, fetchImpl: makeFetch() })
+    await expect(
+      service.replyToTask({ taskId: 'task-1', contextId: 'ctx-1' }, 'Hola'),
+    ).rejects.toBeInstanceOf(AgentUnavailableError)
   })
 
   it.each([

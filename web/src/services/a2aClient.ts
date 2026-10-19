@@ -1,6 +1,6 @@
 // A2A client: agent-card discovery, sending research tasks, and streaming task updates.
 // The only module that imports @a2a-js/sdk; it exposes the types in types/research.ts.
-import { Role, taskStateToJSON, type StreamResponse } from '@a2a-js/sdk'
+import { Role, taskStateToJSON, type Part, type StreamResponse } from '@a2a-js/sdk'
 import {
   ClientFactory,
   ClientFactoryOptions,
@@ -9,7 +9,7 @@ import {
   RestTransportFactory,
   type Client,
 } from '@a2a-js/sdk/client'
-import type { ResearchEvent, ResearchSubmission } from '@/types/research'
+import type { ResearchEvent, ResearchSubmission, TaskIds } from '@/types/research'
 
 // Any failure before the agent accepts a request. `reason` holds the original
 // error for debugging only; it is never shown to the user.
@@ -26,7 +26,16 @@ export interface A2AServiceOptions {
 }
 
 export interface A2AService {
+  // A new request: no task or context identifier.
   submitResearch(text: string): Promise<ResearchSubmission>
+  // A reply to the agent's clarifying question, on that task's identifiers.
+  replyToTask(ids: TaskIds, text: string): Promise<ResearchSubmission>
+}
+
+function messageText(parts: Part[] | undefined): string {
+  return (parts ?? [])
+    .map((part) => (part.content?.$case === 'text' ? part.content.value : ''))
+    .join('')
 }
 
 function toResearchEvent(response: StreamResponse): ResearchEvent | undefined {
@@ -34,11 +43,13 @@ function toResearchEvent(response: StreamResponse): ResearchEvent | undefined {
   switch (payload?.$case) {
     case 'task': {
       const { id, contextId, status } = payload.value
-      return { kind: 'task', taskId: id, contextId, state: stateName(status?.state) }
+      const text = messageText(status?.message?.parts)
+      return { kind: 'task', taskId: id, contextId, state: stateName(status?.state), text }
     }
     case 'statusUpdate': {
       const { taskId, contextId, status } = payload.value
-      return { kind: 'status', taskId, contextId, state: stateName(status?.state) }
+      const text = messageText(status?.message?.parts)
+      return { kind: 'status', taskId, contextId, state: stateName(status?.state), text }
     }
     case 'artifactUpdate': {
       const { taskId, contextId } = payload.value
@@ -46,10 +57,7 @@ function toResearchEvent(response: StreamResponse): ResearchEvent | undefined {
     }
     case 'message': {
       const { contextId, parts } = payload.value
-      const text = parts
-        .map((part) => (part.content?.$case === 'text' ? part.content.value : ''))
-        .join('')
-      return { kind: 'message', contextId, text }
+      return { kind: 'message', contextId, text: messageText(parts) }
     }
     default:
       return undefined
@@ -77,48 +85,51 @@ export function createA2AService({ agentUrl, fetchImpl }: A2AServiceOptions): A2
   )
   let client: Promise<Client> | undefined
 
-  return {
-    async submitResearch(text) {
-      try {
-        client ??= factory.createFromUrl(agentUrl)
-        const stream = (await client).sendMessageStream({
-          tenant: '',
-          message: {
-            messageId: crypto.randomUUID(),
-            contextId: '',
-            taskId: '',
-            role: Role.ROLE_USER,
-            parts: [
-              {
-                content: { $case: 'text', value: text },
-                filename: '',
-                mediaType: 'text/plain',
-                metadata: undefined,
-              },
-            ],
-            metadata: undefined,
-            extensions: [],
-            referenceTaskIds: [],
-          },
-          configuration: undefined,
+  async function send(text: string, ids: TaskIds): Promise<ResearchSubmission> {
+    try {
+      client ??= factory.createFromUrl(agentUrl)
+      const stream = (await client).sendMessageStream({
+        tenant: '',
+        message: {
+          messageId: crypto.randomUUID(),
+          contextId: ids.contextId,
+          taskId: ids.taskId,
+          role: Role.ROLE_USER,
+          parts: [
+            {
+              content: { $case: 'text', value: text },
+              filename: '',
+              mediaType: 'text/plain',
+              metadata: undefined,
+            },
+          ],
           metadata: undefined,
-        })
-        const events = mapEvents(stream)
-        const first = await events.next()
-        if (first.done) throw new Error('Stream ended before the first event')
-        return {
-          first: first.value,
-          events,
-          close: async () => {
-            await events.return(undefined)
-          },
-        }
-      } catch (error) {
-        // Read the agent card again next time, e.g. when the agent starts later.
-        client = undefined
-        throw new AgentUnavailableError(error)
+          extensions: [],
+          referenceTaskIds: [],
+        },
+        configuration: undefined,
+        metadata: undefined,
+      })
+      const events = mapEvents(stream)
+      const first = await events.next()
+      if (first.done) throw new Error('Stream ended before the first event')
+      return {
+        first: first.value,
+        events,
+        close: async () => {
+          await events.return(undefined)
+        },
       }
-    },
+    } catch (error) {
+      // Read the agent card again next time, e.g. when the agent starts later.
+      client = undefined
+      throw new AgentUnavailableError(error)
+    }
+  }
+
+  return {
+    submitResearch: (text) => send(text, { taskId: '', contextId: '' }),
+    replyToTask: (ids, text) => send(text, ids),
   }
 }
 

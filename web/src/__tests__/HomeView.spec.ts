@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { VueWrapper } from '@vue/test-utils'
+import { flushPromises, type VueWrapper } from '@vue/test-utils'
 
 import HomeView from '@/views/HomeView.vue'
 import { a2aService } from '@/services/a2aClient'
@@ -49,6 +49,27 @@ describe('HomeView', () => {
     ]) {
       expect(wrapper.text()).toContain(exclusion)
     }
+  })
+
+  it('shows the progress panel between the form and the examples', async () => {
+    submitResearch.mockResolvedValue({
+      first: { kind: 'task', taskId: 't', contextId: 'c', state: 'TASK_STATE_SUBMITTED', text: '' },
+      events: { next: vi.fn<ResearchSubmission['events']['next']>(() => new Promise(() => {})) },
+      close: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    })
+    ;({ wrapper } = await mountWithPlugins(HomeView))
+    expect(wrapper.find('[data-testid="research-progress"]').exists()).toBe(false)
+
+    await wrapper.find('textarea').setValue('¿Cómo están los alquileres?')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    const html = wrapper.html()
+    const order = ['</form>', 'data-testid="research-progress"', 'examples-heading'].map((s) =>
+      html.indexOf(s),
+    )
+    expect(order.every((index) => index >= 0)).toBe(true)
+    expect(order).toEqual([...order].sort((a, b) => a - b))
   })
 
   it('fills and focuses the field from an example without sending it', async () => {

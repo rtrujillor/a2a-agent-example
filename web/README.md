@@ -8,6 +8,7 @@ and shows progress, answers, citations, and limitations. See the root
 src/
 ├── components/
 │   ├── ResearchRequestForm.vue  # question form on the home page
+│   ├── ResearchProgress.vue     # progress, outcome, and reply panel under the form
 │   └── ui/           # shadcn-vue primitives (vendored, owned by us)
 ├── lib/utils.ts      # cn(): merges Tailwind classes
 ├── router/index.ts   # routes table, createAppRouter(history), app router
@@ -98,6 +99,33 @@ flows one way: component → `useResearchStore` (`src/stores/research.ts`) →
 
   Only one request runs at a time. A new submission closes the previous stream
   and starts a new context.
+
+## Research progress
+
+`ResearchProgress` sits between the form and the example questions. It
+appears once a request is accepted. The store keeps reading the stream
+(`follow()`) and turns each event into a step in `steps`:
+
+| Step      | From                                         | Shown as                                 |
+| --------- | -------------------------------------------- | ---------------------------------------- |
+| `agent`   | a working update with text (interpretation)  | card, line breaks kept                   |
+| `user`    | a sent reply                                 | "Tu respuesta" block                     |
+| `outcome` | completed, input-required, rejected, failed  | Alert: `default`, `question`, `notice`, `destructive` |
+| `lost`    | the stream ends or fails before an outcome   | destructive Alert with a fixed text      |
+
+`phase` is `idle`, `working` (spinner shown), `inputRequired`, or
+`finished`. Agent text is plain text, rendered by interpolation, never
+`v-html`.
+
+When the agent asks a clarifying question, its block holds a reply field
+(`replyText`, `replyStatus`, `replyError`). `reply()` validates the reply
+like a question and sends it with `a2aService.replyToTask()` on the same
+`taskId` and `contextId`. Earlier steps stay, and the reply's stream is read
+the same way. The main form always starts a new request and clears the panel.
+
+The panel announces only the newest step, through one polite live region.
+Alerts inside it use `role="group"` instead of the default `role="alert"`, so
+they don't interrupt.
 
 ## Design system
 

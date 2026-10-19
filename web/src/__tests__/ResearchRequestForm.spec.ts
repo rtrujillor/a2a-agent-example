@@ -14,7 +14,7 @@ vi.mock('@/services/a2aClient', () => ({
 const submitResearch = vi.mocked(a2aService.submitResearch)
 
 const accepted: ResearchSubmission = {
-  first: { kind: 'task', taskId: 'task-1', contextId: 'ctx-1', state: 'TASK_STATE_SUBMITTED' },
+  first: { kind: 'task', taskId: 'task-1', contextId: 'ctx-1', state: 'TASK_STATE_SUBMITTED', text: '' },
   events: { next: vi.fn<ResearchSubmission['events']['next']>() },
   close: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
 }

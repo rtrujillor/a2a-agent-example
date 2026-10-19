@@ -10,7 +10,7 @@ describe('routes', () => {
     const main = wrapper.find('main')
 
     expect(router.currentRoute.value.name).toBe('home')
-    expect(main.find('h1').text()).toBe('Acceso a la vivienda en España')
+    expect(main.find('h1').text()).toBe('Problema de acceso a la vivienda en España')
     expect(main.text()).toContain('Qué investiga')
     expect(main.text()).toContain('Precios de compra y alquiler')
     expect(main.text()).toContain('Qué no ofrece')

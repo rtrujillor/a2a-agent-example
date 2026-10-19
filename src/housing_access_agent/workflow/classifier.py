@@ -52,7 +52,7 @@ def make_classifier(
                 raise ModelUnavailableError(type(error).__name__) from error
             else:
                 if isinstance(result, ModelClassification):
-                    logger.info("Model classification (attempt %d): %s", attempt + 1, result.model_dump_json())
+                    logger.debug("Model classification (attempt %d): %s", attempt + 1, result.model_dump_json())
                     return result
                 logger.warning("Empty classifier output (attempt %d)", attempt + 1)
             if attempt + 1 < attempts:

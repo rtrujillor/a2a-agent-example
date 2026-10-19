@@ -14,6 +14,9 @@ export const alertVariants = cva(
         default: 'bg-card text-card-foreground',
         destructive:
           'text-destructive bg-card *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current',
+        // The agent asks the user something: prominent, but not an error.
+        question:
+          'border-primary/40 bg-card text-card-foreground *:[svg]:text-primary',
         // Limitations of an answer (uncertainty, missing data): not an error.
         notice:
           'border-notice-foreground/30 bg-notice text-notice-foreground *:data-[slot=alert-description]:text-notice-foreground *:[svg]:text-current',

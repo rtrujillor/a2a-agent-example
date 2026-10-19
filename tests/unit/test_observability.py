@@ -1,8 +1,9 @@
 import builtins
 import logging
+import warnings
 
 from housing_access_agent.config import Settings
-from housing_access_agent.observability import get_logger, langfuse_callbacks
+from housing_access_agent.observability import configure_logging, get_logger, langfuse_callbacks
 
 
 def test_no_keys_means_no_callbacks():
@@ -54,3 +55,17 @@ def test_logger_needs_no_network():
     logger = get_logger("housing_access_agent.test")
 
     assert isinstance(logger, logging.Logger)
+
+
+def test_only_the_parsed_serializer_warning_is_silenced():
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        configure_logging(Settings(_env_file=None, model_name="m"))
+        warnings.warn(
+            "Pydantic serializer warnings:\n  PydanticSerializationUnexpectedValue(Expected `none` "
+            "[field_name='parsed', input_value=Answer(), input_type=Answer])",
+            UserWarning,
+        )
+        warnings.warn("Pydantic serializer warnings:\n  something else", UserWarning)
+
+    assert [str(w.message) for w in caught] == ["Pydantic serializer warnings:\n  something else"]

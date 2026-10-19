@@ -1,6 +1,7 @@
 """Logger and optional Langfuse tracing. The agent runs without either backend."""
 
 import logging
+import warnings
 from typing import Any
 
 from housing_access_agent.config import Settings
@@ -11,11 +12,16 @@ LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
 # Client libraries whose DEBUG output would bury the agent's own debug lines.
 QUIET_LIBRARIES = ("httpcore", "openai", "langsmith", "urllib3")
 
+# langchain-openai serializes the streamed `parsed` field against a `None` type on every
+# structured call; the warning is harmless and would flood the console.
+PARSED_SERIALIZER_WARNING = r"(?s)Pydantic serializer warnings:.*field_name='parsed'"
+
 
 def configure_logging(settings: Settings) -> None:
     logging.basicConfig(level=settings.log_level.upper(), format=LOG_FORMAT)
     for name in QUIET_LIBRARIES:
         logging.getLogger(name).setLevel(max(logging.INFO, logging.getLogger().level))
+    warnings.filterwarnings("ignore", message=PARSED_SERIALIZER_WARNING, category=UserWarning)
 
 
 def get_logger(name: str) -> logging.Logger:

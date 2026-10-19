@@ -19,3 +19,11 @@ def test_empty_api_key_uses_placeholder():
     model = build_chat_model(Settings(_env_file=None, model_name="m"))
 
     assert model.openai_api_key.get_secret_value() == "not-needed"
+
+
+def test_streams_with_usage_for_time_to_first_token():
+    model = build_chat_model(Settings(_env_file=None, model_name="m", model_base_url="http://127.0.0.1:1234/v1"))
+
+    assert model.streaming is True
+    assert model.stream_usage is True
+    assert model._should_stream_usage() is True

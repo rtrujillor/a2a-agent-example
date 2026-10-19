@@ -122,12 +122,13 @@ Copy `.env.example` to `.env` and fill in the values. Never commit `.env`.
 | `A2A_HOST`, `A2A_PORT`, `A2A_AGENT_URL` | Agent bind address and public A2A URL |
 | `CORS_ALLOWED_ORIGINS` | Web client origins allowed to call the agent |
 | `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` | Tracing |
-| `MAX_*`, `*_TIMEOUT_SECONDS`, `HTTP_MAX_RETRIES` | Research limits, timeouts, retries |
+| `MAX_*`, `*_TIMEOUT_SECONDS`, `HTTP_MAX_RETRIES` | Research limits, timeouts, retries. Model responses are streamed, so `HTTP_TIMEOUT_SECONDS` is the longest wait for the next token, not for a whole answer; `REQUEST_TIMEOUT_SECONDS` bounds the whole request |
 | `MAX_CLARIFICATION_ROUNDS` | Clarifying questions per task before the request is rejected (default 2) |
 | `MAX_SEARCHES_PER_REQUEST`, `MAX_PLANNER_ITERATIONS` | Searches per request (default 6) and planner iterations (default 2). The first plan may use `MAX_SEARCHES_PER_REQUEST - MAX_PLANNER_ITERATIONS` searches (at least 1), keeping one for each later replan |
 
 `MODEL_NAME` is required. Langfuse tracing is used only when both Langfuse
-keys are set.
+keys are set. Each model call is then a generation with its token usage and
+time to first token.
 
 Set `LOG_LEVEL=DEBUG` to see what the model returns for each classification and
 plan in the server console. Those lines can echo parts of the user's question, so keep

@@ -34,6 +34,10 @@ def build_chat_model(settings: Settings) -> ChatOpenAI:
         timeout=settings.http_timeout_seconds,
         max_retries=settings.http_max_retries,
         temperature=0,
+        # Streaming gives Langfuse the time to first token; usage then comes on the last chunk,
+        # which langchain-openai only requests by default for OpenAI's own URL.
+        streaming=True,
+        stream_usage=True,
         **options,
     )
 
